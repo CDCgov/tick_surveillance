@@ -6,15 +6,6 @@
 
 
 
-## Related documents
-
-* [Open Practices](open_practices.md)
-* [Rules of Behavior](rules_of_behavior.md)
-* [Thanks and Acknowledgements](thanks.md)
-* [Disclaimer](DISCLAIMER.md)
-* [Contribution Notice](CONTRIBUTING.md)
-* [Code of Conduct](code-of-conduct.md)
-
 ## Overview
 
 This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) assay which is used for tick and tick-borne pathogen surveillance testing. This pipeline is implemented in Nextflow and performes QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation. 
