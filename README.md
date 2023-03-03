@@ -13,7 +13,7 @@ This bioinformatics pipeline identifies and summarizes amplicon sequences produc
 To run this pipeline, see [pipeline instructions](Pipeline_instructions.md)
 
 
-This pipeline was developed by Mark Stenglein from Colorado State University in collaboration with Lynn Osikowicz, Sarah Maes, Andrias Hojgaard, and Becky Eisen from the CDC's Division of Vector-Borne Disease. 
+This pipeline was developed by Mark Stenglein from Colorado State University in collaboration with Lynn Osikowicz, Sarah Maes, Andrias Hojgaard, and Becky Eisen from the CDC's Division of Vector-Borne Diseases. 
 
   
 ## Public Domain Standard Notice
