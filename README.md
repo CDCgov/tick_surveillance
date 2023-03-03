@@ -8,7 +8,7 @@
 
 ## Overview
 
-This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) described by Hojgaard et. al (2020). The MPAS assay was originally designed to detect microbial genera that contain known human pathogens found in _Ixodes_ ticks (_Borrelia_ spp. _Babesia_ spp., _Anaplasma_ spp. _Ehrlichia_ spp.). This pipeline is implemented in Nextflow and performes QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation.  
+This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) described by Hojgaard et. al (2020). The MPAS assay was originally designed to detect microbial genera that contain known human pathogens found in _Ixodes_ ticks (_Borrelia_ spp. _Babesia_ spp., _Anaplasma_ spp. _Ehrlichia_ spp.). This pipeline is implemented in Nextflow and performs QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation.  
 
 To run this pipeline, see [pipeline instructions](Pipeline_instructions.md)
 
