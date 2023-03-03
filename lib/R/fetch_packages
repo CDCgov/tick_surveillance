@@ -1,0 +1,14 @@
+#!/bin/bash -x
+
+# download the openxlsx package for use pipeline R scripts
+# we will be able to install into R from this fixed version (4.2.5.1) 
+# using the .tar.gz binary.  
+#
+# MDS 10/27/2022
+
+# openxlsx requires zip package
+curl -OL https://cran.r-project.org/src/contrib/zip_2.2.2.tar.gz
+
+# openxlsx
+curl -OL https://cran.r-project.org/src/contrib/openxlsx_4.2.5.1.tar.gz
+

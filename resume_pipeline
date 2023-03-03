@@ -1,0 +1,3 @@
+#!/bin/bash -x
+
+nextflow run tick_pipeline.nf -resume

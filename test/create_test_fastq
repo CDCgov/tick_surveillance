@@ -1,0 +1,64 @@
+#!/bin/bash -x
+
+#
+# create several small test datasets from real datasets 
+# positive (or negative) for known pathogens
+#
+# MDS 6/18/2022 
+#
+
+# 1000 read pairs per test dataset
+sample_size=1000
+# this assumes running this script from ../input/fastq (path relative to test directory)
+test_dir="../../test/fastq"
+
+# empty fastq shouldn't cause pipeline to fail
+touch ${test_dir}/empty_fastq_R1.fastq.gz
+touch ${test_dir}/empty_fastq_R2.fastq.gz
+
+#
+# using different fastq naming schemes should all work
+#
+# names like these should all work:
+# *_S13_L001_R1_001.fastq.gz
+# *_L001_R1_001.fastq.gz
+# *_R1_001.fastq.gz
+# *_R1.fastq.gz
+#
+# use these variously below
+
+# No pathogens - just tick DNA (I. scapularis)
+# this dataset is from the run "2021_4_group_2_v3"
+seqtk sample ~/2022_2_test_many_datasets/input/fastq/A-01_S1_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/I_scapularis_R1_001.fastq.gz
+seqtk sample ~/2022_2_test_many_datasets/input/fastq/A-01_S1_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/I_scapularis_R2_001.fastq.gz
+
+# No pathogens - just tick DNA (I. pacificus)
+# these datasets are from the Alaska sample run that I've been using for testing
+seqtk sample A-01_S1_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/I_pacificus_R1_001.fastq.gz
+seqtk sample A-01_S1_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/I_pacificus_R2_001.fastq.gz
+
+# No pathogens - just tick DNA (D. variabilis)
+seqtk sample A-09_S9_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/D_variabilis_R1_001.fastq.gz
+seqtk sample A-09_S9_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/D_variabilis_R2_002.fastq.gz
+
+# No pathogens - just tick DNA (D. andersoni)
+seqtk sample A-05_S5_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/D_andersoni_R1_001.fastq.gz
+seqtk sample A-05_S5_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/D_andersoni_R2_001.fastq.gz
+
+# B. burgdorferi B31 - 1000 total reads
+seqtk sample 13_S13_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/Borrelia_burgdoreri_B31_1000_S13_L001_R1_001.fastq.gz
+seqtk sample 13_S13_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/Borrelia_burgdoreri_B31_1000_S13_L001_R2_001.fastq.gz
+
+# B. burgdorferi B31 - 100 total reads
+# leave this file uncompressed - pipeline should work with compressed or uncompressed fastq
+seqtk sample 13_S13_L001_R1_001.fastq.gz 100 > ${test_dir}/Borrelia_burgdoreri_B31_100_S13_L001_R1_001.fastq
+seqtk sample 13_S13_L001_R2_001.fastq.gz 100 > ${test_dir}/Borrelia_burgdoreri_B31_100_S13_L001_R2_001.fastq
+
+# well A-12 (sample 96): pathogen positive control
+seqtk sample A-96_S96_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/pathogen_pos_S96_L001_R1_001.fastq.gz
+seqtk sample A-96_S96_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/pathogen_pos_S96_L001_R2_001.fastq.gz
+
+# sample 29: Borrelia_miyamotoi
+seqtk sample 29_S29_L001_R1_001.fastq.gz $sample_size | gzip > ${test_dir}/Borrelia_miyamotoi_R1_001.fastq
+seqtk sample 29_S29_L001_R2_001.fastq.gz $sample_size | gzip > ${test_dir}/Borrelia_miyamotoi_R2_001.fastq
+

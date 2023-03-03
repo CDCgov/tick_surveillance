@@ -1,0 +1,16 @@
+#!/bin/bash 
+#
+# Build custom singularity images for this pipeline
+# 
+
+# create the singularity image for R tools
+sudo singularity build r_tools.sif r_tools.def
+# now sign the image.  Uses linked github email.  Passphrase != access token.
+singularity sign r_tools.sif
+
+# create the singularity image for python tools
+sudo singularity build python_tools.sif python_tools.def
+# now sign the image.  Uses linked github email.  Passphrase != access token.
+singularity sign python_tools.sif
+
+

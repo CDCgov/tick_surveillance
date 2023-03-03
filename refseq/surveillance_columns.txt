@@ -1,0 +1,21 @@
+column_name	default_text
+Index
+ID
+Submission_No
+Vial_ID
+Pathogen_Testing_ID
+CSID
+Acceptable_DNA	Negative
+Borrelia_sp	Negative
+Borrelia_burgdorferi_sensu_stricto	Negative
+Borrelia_mayonii	Negative
+Borrelia_miyamotoi	Negative
+Borrelia_Other_species_name	
+Anaplasma_phagocytophilum_human_active_strain	Negative
+Anaplasma_phagocytophilum_non-human_active_strain	Negative
+Babesia_microti	Negative
+Ehrlichia_muris_eauclairensis	Negative
+Babesia_sp_other	Negative
+Babesia_sp_other_name
+Ehrlichia_sp_other	Negative
+Ehrlichia_sp_other_name

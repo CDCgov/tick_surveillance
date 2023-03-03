@@ -1,0 +1,73 @@
+BootStrap: docker
+From: rocker/r-ver:4.1.2
+
+%post
+    # apt-get -y update
+    # apt-get -y install cowsay lolcat
+    
+    # This scriptlet code is a modification of:
+    # https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/install_tidyverse.sh
+
+    ## build ARGs
+    # NCPUS=${NCPUS:--1}
+    NCPUS=`grep -c ^processor /proc/cpuinfo`
+
+    # install system packages necessary for tidyverse
+    set -e
+    apt-get update -qq && apt-get -y --no-install-recommends install \
+        libxml2-dev \
+        libcairo2-dev \
+        libgit2-dev \
+        default-libmysqlclient-dev \
+        libpq-dev \
+        libsasl2-dev \
+        libsqlite3-dev \
+        libssh2-1-dev \
+        libxtst6 \
+        libcurl4-openssl-dev \
+        unixodbc-dev && \
+      rm -rf /var/lib/apt/lists/*
+    
+    # install tidyverse and associated packages
+    install2.r --error --skipinstalled -n $NCPUS \
+        tidyverse \
+        devtools \
+        rmarkdown \
+        BiocManager \
+        vroom \
+        gert
+    
+    ## dplyr database backends
+    install2.r --error --skipmissing --skipinstalled -n $NCPUS \
+        arrow \
+        dbplyr \
+        DBI \
+        dtplyr \
+        duckdb \
+        nycflights13 \
+        Lahman \
+        RMariaDB \
+        RPostgres \
+        RSQLite \
+        fst
+    
+    ## other useful R packages 
+    install2.r --error --skipmissing --skipinstalled -n $NCPUS \
+        openxlsx \
+        readxl 
+    
+    ## dada2 too?
+    
+    rm -rf /tmp/downloaded_packages
+
+
+%environment
+    # export LC_ALL=C
+    # export PATH=/usr/games:$PATH
+
+%runscript
+    # date | cowsay | lolcat
+
+%labels
+    Author Mark Stenglein
+
