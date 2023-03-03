@@ -8,7 +8,12 @@
 
 ## Overview
 
-This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) assay which is used for tick and tick-borne pathogen surveillance testing. This pipeline is implemented in Nextflow and performes QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation. 
+This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) described by Hojgaard et. al (2020). The MPAS assay was originally designed to detect microbial genera that contain known human pathogens found in _Ixodes_ ticks (_Borrelia_ spp. _Babesia_ spp., _Anaplasma_ spp. _Ehrlichia_ spp.). This pipeline is implemented in Nextflow and performes QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation.  
+
+To run this pipeline, see [pipeline instructions](Pipeline_instructions.md)
+
+
+This pipeline was developed by Mark Stenglein from Colorado State University in collaboration with Lynn Osikowicz, Sarah Maes, Andrias Hojgaard, and Becky Eisen from the CDC's Division of Vector-Borne Disease. 
 
   
 ## Public Domain Standard Notice
@@ -66,3 +71,6 @@ Please refer to [CDC's Template Repository](https://github.com/CDCgov/template)
 for more information about [contributing to this repository](https://github.com/CDCgov/template/blob/master/CONTRIBUTING.md),
 [public domain notices and disclaimers](https://github.com/CDCgov/template/blob/master/DISCLAIMER.md),
 and [code of conduct](https://github.com/CDCgov/template/blob/master/code-of-conduct.md).
+
+## Pipeline References  
+Hojgaard, A., Osikowicz, L. M., Eisen, L., & Eisen, R. J. (2020). Evaluation of a novel multiplex PCR amplicon sequencing assay for detection of human pathogens in Ixodes ticks. Ticks and tick-borne diseases, 11(6), 101504. https://doi.org/10.1016/j.ttbdis.2020.101504
