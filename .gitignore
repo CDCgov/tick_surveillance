@@ -1,0 +1,12 @@
+*.fastq
+*.fastq.gz
+*.nextflow*
+results
+work
+refseq/reference_sequences.fasta*
+draft_versions
+python_venv
+*.swp
+*.bak
+lib/R/openxlsx
+lib/R/zip

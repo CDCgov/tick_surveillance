@@ -1,0 +1,286 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/stenglein-lab/tick_surveillance/master/nextflow_schema.json",
+  "title": "stenglein-lab/tick_surveillance pipeline parameters",
+  "description": "A pipeline to analyze amplicon sequencing data for tick-borne pathogens",
+  "type": "object",
+  "definitions": {
+    "primer_trimming_options": {
+      "title": "Primer trimming options",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "primers": {
+          "type": "string",
+          "default": "/home/mdstengl/2023_1_issues/refseq//primers.tsv"
+        },
+        "post_trim_min_length": {
+          "type": "integer",
+          "default": 100
+        },
+        "amplicon_primers_max_error_fraction": {
+          "type": "number",
+          "default": 0.2
+        },
+        "adapters_min_overlap": {
+          "type": "integer",
+          "default": 10
+        }
+      }
+    },
+    "surveillance_report": {
+      "title": "Surveillance Report",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "surveillance_columns": {
+          "type": "string",
+          "default": "/home/mdstengl/2023_1_issues/refseq//surveillance_columns.txt"
+        },
+        "min_reads_for_positive_surveillance_call": {
+          "type": "integer",
+          "default": 50
+        },
+        "max_blast_refseq_evalue": {
+          "type": "number",
+          "default": 1e-10
+        }
+      }
+    },
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["fastq_dir"],
+      "properties": {
+        "fastq_pattern": {
+          "type": "string",
+          "default": "*_R[12]_*.fastq*",
+          "description": "fastq files must match this pattern to be used as input to the pipeline."
+        },
+        "fastq_dir": {
+          "type": "string",
+          "default": "input/fastq/",
+          "description": "A directory containing"
+        },
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+          "fa_icon": "fas fa-folder-open",
+          "default": "./results/"
+        },
+        "targets": {
+          "type": "string",
+          "default": "/refseq//targets.tsv"
+        },
+        "tracedir": {
+          "type": "string",
+          "description": "Directory to keep pipeline Nextflow logs and reports.",
+          "default": "${params.outdir}/pipeline_info",
+          "fa_icon": "fas fa-cogs",
+          "hidden": true
+        },
+        "log_outdir": {
+          "type": "string",
+          "default": "./results/log"
+        },
+        "output_prefix": {
+          "type": "string",
+          "default": "2023_01_12_"
+        }
+      }
+    },
+    "max_job_request_options": {
+      "title": "Max job request options",
+      "type": "object",
+      "fa_icon": "fab fa-acquisitions-incorporated",
+      "description": "Set the top limit for requested resources for any single job.",
+      "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
+      "properties": {
+        "max_cpus": {
+          "type": "integer",
+          "description": "Maximum number of CPUs that can be requested for any single job.",
+          "default": 16,
+          "fa_icon": "fas fa-microchip",
+          "hidden": true,
+          "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
+        },
+        "max_memory": {
+          "type": "string",
+          "description": "Maximum amount of memory that can be requested for any single job.",
+          "default": "128.GB",
+          "fa_icon": "fas fa-memory",
+          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+          "hidden": true,
+          "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
+        },
+        "max_time": {
+          "type": "string",
+          "description": "Maximum amount of time that can be requested for any single job.",
+          "default": "240.h",
+          "fa_icon": "far fa-clock",
+          "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
+          "hidden": true,
+          "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
+        }
+      }
+    },
+    "generic_options": {
+      "title": "Generic options",
+      "type": "object",
+      "fa_icon": "fas fa-file-import",
+      "description": "Less common options for the pipeline, typically set in a config file.",
+      "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+      "properties": {
+        "help": {
+          "type": "boolean",
+          "description": "Display help text.",
+          "fa_icon": "fas fa-question-circle"
+        }
+      }
+    },
+    "dada2_options": {
+      "title": "DADA2 options",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "dada_outdir": {
+          "type": "string",
+          "default": "./results/dada2"
+        }
+      }
+    },
+    "blasting_of_unassigned_sequences": {
+      "title": "BLASTing of unassigned sequences",
+      "type": "object",
+      "description": "Parameters associated with BLASTing of unassigned sequences against the NCBI nt database for the purposes of taxonomic classification of non-target sequences.",
+      "default": "",
+      "properties": {
+        "blast_unassigned_sequences": {
+          "type": "boolean"
+        },
+        "max_blast_nt_evalue": {
+          "type": "number",
+          "default": 1e-10
+        },
+        "blast_perc_identity": {
+          "type": "number",
+          "default": 70.0
+        },
+        "blast_qcov_hsp_perc": {
+          "type": "number",
+          "default": 70.0
+        },
+        "local_nt_database_dir": {
+          "type": "string",
+          "default": "None"
+        },
+        "local_nt_database_name": {
+          "type": "string",
+          "default": "nt"
+        },
+        "remote_blast_nt": {
+          "type": "boolean",
+          "description": "Setting this parameter to true will run this BLAST search using NCBI's remote copy of the nt blast database.  This avoids needing to have a local copy of the nt database installed.  Note that this will be very slow."
+        },
+        "blast_tax_dir": {
+          "type": "string",
+          "default": "None"
+        }
+      }
+    },
+    "new_group_4": {
+      "title": "New Group 4",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "make_trees": {
+          "type": "boolean",
+          "default": true
+        },
+        "tree_outdir": {
+          "type": "string",
+          "default": "./results/trees"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/primer_trimming_options"
+    },
+    {
+      "$ref": "#/definitions/surveillance_report"
+    },
+    {
+      "$ref": "#/definitions/input_output_options"
+    },
+    {
+      "$ref": "#/definitions/max_job_request_options"
+    },
+    {
+      "$ref": "#/definitions/generic_options"
+    },
+    {
+      "$ref": "#/definitions/dada2_options"
+    },
+    {
+      "$ref": "#/definitions/blasting_of_unassigned_sequences"
+    },
+    {
+      "$ref": "#/definitions/new_group_4"
+    }
+  ],
+  "properties": {
+    "python_venv_path": {
+      "type": "string",
+      "default": "/home/mdstengl/2023_1_issues/python_venv/",
+      "hidden": true
+    },
+    "script_dir": {
+      "type": "string",
+      "default": "/home/mdstengl/2023_1_issues/scripts"
+    },
+    "R_lib_dir": {
+      "type": "string",
+      "default": "/home/mdstengl/2023_1_issues/lib/R/"
+    },
+    "initial_fastqc_dir": {
+      "type": "string",
+      "default": "./results/initial_fastqc/"
+    },
+    "post_trim_fastqc_dir": {
+      "type": "string",
+      "default": "./results/post_trim_fastqc/"
+    },
+    "trimmed_outdir": {
+      "type": "string",
+      "default": "./results/trimmed_fastq"
+    },
+    "blast_outdir": {
+      "type": "string",
+      "default": "./results/blast"
+    },
+    "refseq_dir": {
+      "type": "string",
+      "default": "/home/mdstengl/2023_1_issues/refseq/"
+    },
+    "refseq_fasta_dir": {
+      "type": "string",
+      "default": "./results/refseq_fasta/"
+    },
+    "singularity_pull_docker_container": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "string",
+      "default": "None"
+    }
+  }
+}
