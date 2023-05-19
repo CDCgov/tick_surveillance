@@ -1,8 +1,8 @@
 #!/bin/bash -x
 
 # download the openxlsx package for use pipeline R scripts
-# we will be able to install into R from this fixed version (4.2.5.1) 
-# using the .tar.gz binary.  
+# we will be able to install into R from these fixed versions
+# using the .tar.gz binaries, provided as part of this repo.  
 #
 # MDS 10/27/2022
 

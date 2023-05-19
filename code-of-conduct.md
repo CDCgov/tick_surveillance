@@ -101,3 +101,4 @@ and the [CDC's Informatics Innovation Unit R&D Lab's code of conduct.](https://w
 * [Laws enforced by the Equal Employment Opportunity Commission](http://www.eeoc.gov/laws/statutes/index.cfm)
 * [Types of discrimination prohibited by law](http://www.eeoc.gov/laws/types)
 * [New and proposed regulations](http://www.eeoc.gov/laws/regulations/index.cfm)
+

@@ -74,3 +74,4 @@ and [code of conduct](https://github.com/CDCgov/template/blob/master/code-of-con
 
 ## Pipeline References  
 Hojgaard, A., Osikowicz, L. M., Eisen, L., & Eisen, R. J. (2020). Evaluation of a novel multiplex PCR amplicon sequencing assay for detection of human pathogens in Ixodes ticks. Ticks and tick-borne diseases, 11(6), 101504. https://doi.org/10.1016/j.ttbdis.2020.101504
+

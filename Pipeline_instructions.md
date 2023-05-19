@@ -114,7 +114,13 @@ The main outputs of the pipeline are:
 2. [QC reports](#qc-reports)
 3. Information about [observed sequences that were not assigned to any reference sequences](#unassigned-sequences).
 
-These typically are output to a `results` directory (or `test/results` when running with -profile test).
+#### Output directory
+
+Output files are placed in a `results` directory (or `test/results` when running with -profile test).  The output directory can be specified using the `--outdir` parameter (e.g. `nextflow run stenglein-lab/tick_surveillance ... --outdir a_results_directory`
+
+#### Output file name prefixes 
+
+The main pipeline output file names will be prefixed by a value that is by default the date the pipeline is run (e.g. `2023_04_06_sequencing_report.xlsx`).  This filename prefix can be changed using the --output_prefix parameter.  For instance, running `nextflow run stenglein-lab/tick_surveillance ... --output_prefix my_new_run` will create a file named `my_new_run_sequencing_report.xlsx`)
 
 ### Surveillance Report
 
@@ -136,7 +142,7 @@ The values in the surveillance report come from two possible sources:
 
 2. **Read counts from the sequence data.**
 
-
+TODO: flesh out this section.
 
 ### QC reports
 
@@ -191,7 +197,9 @@ The default location of the primers.tsv file can be overwritten by specifying th
 nextflow run stenglein-lab/tick_surveillance -profile singularity --primers /path/to/primers.tsv
 ```
 
-If primer sequences are not entered in the correct orientation, trimming will not work and targets amplified by these sequences will not be detected by the pipeline.  The solution in this case will most likely just be to swap the F/R orientation of the primers in this file. 
+If primer sequences are not entered in the correct orientation, trimming will not work and targets amplified by these sequences will not be detected by the pipeline.  The solution in this case will most likely just be to swap the F/R orientation of the primers in this file.  
+
+**Correct primer orientation:**  The forward primer (primer_f) should appear at the beginning of Illumina read 1 and be in the same orientation as R1.  The reverse primer (primer_r) should appear at the beginning of read 2 and be in the same orientation as read 2.  In other words, relative to the PCR product as a whole, the primers should point towards each other.
 
 ## Dependencies
 
@@ -219,7 +227,15 @@ Singularity containers will be automatically downloaded and stored in a director
 
 ### Conda
 
-It is possible to run this pipeline using an all-in-one [conda](https://docs.conda.io/en/latest/) environment, defined [in this file](./conda/tick_conda_environment.yaml).  But it is recommended to use singularity instead of conda.  
+It is possible to run this pipeline using an all-in-one [conda](https://docs.conda.io/en/latest/) environment, defined [in this file](./conda/tick_conda_environment.yaml).  But it is strongly recommended to use singularity instead of conda.  
+
+### R libraries
+
+Some of the pipeline code is implemented in [R scripts](./scripts/).  Some of these scripts require R packages like [openxlsx](https://www.rdocumentation.org/packages/openxlsx/versions/4.2.5.2), for writing output in Excel format.  These packages are installed locally, on top of a Rocker tidyverse singularity image.  This occurs in nextflow process `setup_R_dependencies`, which invokes [this script](./scripts/install_R_packages.R).
+
+### Python dependencies
+
+Some of the pipeline code is implemented in [Python scripts](./scripts/).  In particular, the tree-building scripts.  These python scripts require various python modules.  This is handled by creating a python virtual environment (venv), which happens in nextflow process `setup_python_venv`.  This venv is then activated from a basic python singularity image (for instance in process `create_fasta_for_trees`).
 
 ## BLASTing of unassigned sequences
 
