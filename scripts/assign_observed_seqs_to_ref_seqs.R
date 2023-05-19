@@ -42,6 +42,7 @@ if (!interactive()) {
 }
 
 library(tidyverse)
+library(lubridate)
 library(readxl)
 # load openxlsx, either from pipeline's R lib dir or from R environment
 if (r_libdir != "NA") {
@@ -168,6 +169,14 @@ if ( ! "batch" %in% colnames(metadata_df)) {
   metadata_df <- metadata_df %>% mutate(batch = "1")
 }
 
+# Metadata columns in Excel date format get output as in integer that is the # of days since Jan 1, 1900 
+# which columns have POSIXct date format?
+posix_date_columns <- which(sapply(metadata_df, is.POSIXct))
+# This converts columns with POSIXct format into Date format
+for (date_col in posix_date_columns) {
+  metadata_df[,date_col] <- lapply (metadata_df[,date_col], as.Date, format="yyyy-mm-dd")
+}
+
 # --------------------------
 # Read in target information
 # --------------------------
@@ -255,12 +264,64 @@ writeFasta(unassigned_sequences$sequence_number,
            unassigned_sequences$observed_sequence, 
            paste0(output_dir, "unassigned_sequences.fasta"))
 
+
+# get rid of 0 counts
+sparse_sat <- filter(sequence_abundance_table, abundance > 0) 
+
+sat_with_assigned <- left_join(sparse_sat, 
+                               select(blast_df, query, assigned_to_target), 
+                               by=c("sequence_number" = "query"))  
+
+# turn NA values in assigned_to_target, resulting from queries producing no blast hits at all, into F values
+sat_with_assigned$assigned_to_target <-  replace(sat_with_assigned$assigned_to_target, 
+                                                 is.na(sat_with_assigned$assigned_to_target), 
+                                                 FALSE)
+
+# calculate fraction of reads that are assigned or not
+assigned_unassigned_counts <- sat_with_assigned %>% 
+  group_by(dataset, assigned_to_target) %>% 
+  summarize(reads = sum(abundance), .groups="drop") %>%
+  ungroup() %>%
+  group_by(dataset) %>%
+  mutate(total_reads = sum(reads),
+         fraction = reads / total_reads)
+  
+# clean-up dataframe
+fraction_assigned <- assigned_unassigned_counts %>% 
+  filter(assigned_to_target == T) %>%
+  select(-assigned_to_target) %>%
+  rename(assigned_reads = reads)
+
+# output dataframe
+write.table(fraction_assigned, file=paste0(output_dir, "fraction_reads_assigned.txt"),  
+            quote=F, sep="\t", row.names=F, col.names=T)
+
+# calculate_stats (for paper revisions)
+assigned_stats <- fraction_assigned %>% ungroup() %>% summarize(mean_fraction_assigned = mean(fraction),
+                                                  median_fraction_assigned = median(fraction),
+                                                  sd_fraction_assigned = sd(fraction),
+                                                  min_fraction_assigned = min(fraction),
+                                                  max_fraction_assigned = max(fraction))
+
+# output dataframe
+write.table(assigned_stats, file=paste0(output_dir, "fraction_reads_assigned_summary_stats.txt"),  
+            quote=F, sep="\t", row.names=F, col.names=T)
+
+# create a histogram of fraction of reads assigned
+assigned_histogram = ggplot(fraction_assigned) +
+  geom_histogram(aes(x=fraction), bins=50, fill="darkslateblue", color="black", size=0.15) +
+  theme_classic() +
+  xlab("Fraction of reads assigned to a reference sequence") + 
+  ylab("Datasets")
+
+ggsave(paste0(output_dir, "/Fraction_of_reads_assigned_histogram.pdf"), plot = assigned_histogram, width=10, height=7.5, units="in")
+
+
+
 # -----------------------
 # consolidate dataframes
 # -----------------------
 
-# get rid of 0 counts
-sparse_sat <- filter(sequence_abundance_table, abundance > 0) 
 
 # keep track of metadata rows
 metadata_key <- metadata_df %>% select(Index, Pathogen_Testing_ID, batch)
@@ -274,10 +335,6 @@ dataset_df <- left_join(dataset_df, blast_df, by=c("sequence_number" = "query"))
   # get rid of one of two identical redundant sequence columns
   select(-observed_sequence) %>%
   rename(observed_sequence = sequence)
-
-  # (there are two identical columns: one named sequence the other observed_sequence)
-  # select(-sequence) 
-  # rename(observed_sequence = sequence)
 
 # ---------------------------------------------------------------------
 # QC criterion: minimum # of reads mapping to internal pos. control
@@ -390,7 +447,7 @@ dataset_by_spp <- dataset_df %>%
   filter(row_number() == 1) %>%
   ungroup() %>%
   # get rid of unneeded columns
-  select(Index, batch, species, abundance, percent_identity, 
+  select(Index, Pathogen_Testing_ID, batch, species, abundance, percent_identity, 
          percent_query_aligned, richness, internal_control, 
          minimum_internal_control_log_reads, minimum_non_control_reads)
 
@@ -571,6 +628,15 @@ if (all(c("observed_sequence","mismatch") %in% colnames(dataset_df))) {
 # write all data as csv plain-text file
 write.table(dataset_df, paste0(output_dir, "all_data.csv"), quote=F, sep=",", col.names=T, row.names=F)
 
+# create an all_data csv that includes metadata 
+# see: https://github.com/stenglein-lab/tick_surveillance/issues/59
+dataset_plus_metadata <- left_join(dataset_df, metadata_df, by= c("Index", "Pathogen_Testing_ID", "batch"))
+if (nrow(dataset_df) != nrow(dataset_plus_metadata)) {
+    message (paste0("ERROR: merging dataset and metadata resulted in an unexpectedly number of rows"))
+    quit (status = 1)
+}
+write.table(dataset_plus_metadata, paste0(output_dir, "all_data_and_metadata.csv"), quote=F, sep=",", col.names=T, row.names=F)
+
 # create excel output
 wb <- createWorkbook(paste0(output_dir, "sequencing_report.xlsx"))
 modifyBaseFont(wb, fontSize = 11, fontColour = "black", fontName = "Helvetica")
@@ -581,17 +647,30 @@ all_cell_style <- createStyle(
   borderColour = getOption("openxlsx.borderColour", "grey"),
   borderStyle = getOption("openxlsx.borderStyle", "thin"),
   halign = "left",
-  numFmt = "0.00",
+  # numFmt = "0.00",
   wrapText = F
 )
 
 # integer number format
-integer_num_style <- createStyle( 
+integer_cell_style <- createStyle( 
   numFmt = "0"
+)
+
+# date format
+date_cell_style <- createStyle( 
+  numFmt = "yyyy-mm-dd"
+)
+
+# text format
+text_cell_style <- createStyle( 
+  numFmt = "TEXT"
 )
 
 # column headers
 col_header_style <- createStyle( 
+  border = "TopBottomLeftRight",
+  borderColour = getOption("openxlsx.borderColour", "grey"),
+  borderStyle = getOption("openxlsx.borderStyle", "thin"),
   fontName = "Helvetica",
   fontSize = 11,
   textDecoration = "bold",
@@ -605,15 +684,29 @@ style_worksheet <- function (wb, sheetname, df) {
   # style all cells
   addStyle(wb=wb, sheet=sheetname,
            style=all_cell_style,
-           cols = 0:ncol(df)+1,
-           rows = 0:nrow(df)+1,
+           cols = 1:ncol(df),
+           rows = 1:nrow(df)+1,
            gridExpand = T
   )
+  
+  # style date cells
+  date_columns <- which(sapply(df, is.Date))
+  
+  for (date_col in date_columns) {
+    # style date cells
+    addStyle(wb=wb, sheet=sheetname,
+             style=date_cell_style,
+             cols = date_col:date_col,
+             rows = 1:nrow(df)+1,
+             gridExpand = T,
+             stack = T
+    )
+  }
   
   # style column headers
   addStyle(wb=wb, sheet=sheetname,
            style=col_header_style,
-           cols = 0:ncol(df)+1,
+           cols = 1:ncol(df),
            rows = 1:1,
            gridExpand = T,
            stack = T
@@ -691,7 +784,7 @@ conditionalFormatting(wb=wb, sheet="Testing Results",
 # this applies to all columns after the Acceptable_DNA column
 conditionalFormatting(wb=wb, sheet="Testing Results", 
                       "colourScale",
-                      cols = acceptable_DNA_column:ncol(surv_df)+1,
+                      cols = acceptable_DNA_column:ncol(surv_df),
                       rows = 1:nrow(surv_df)+1,
                       style = red_fill,
                       rule = "Positive",
@@ -700,10 +793,11 @@ conditionalFormatting(wb=wb, sheet="Testing Results",
 )
 
 # add integer style to surveillance counts
-addStyle(wb, "surveillance_counts", integer_num_style, rows=1:nrow(surv_df_abundances)+1, cols=acceptable_DNA_column+1:ncol(surv_df_abundances)+1, gridExpand =T, stack = T)
+addStyle(wb, "surveillance_counts", integer_cell_style, rows=1:nrow(surv_df_abundances)+1, cols=acceptable_DNA_column+1:ncol(surv_df_abundances)+1, gridExpand =T, stack = T)
 
 # write out the workbook
 saveWorkbook(wb, paste0(output_dir, "sequencing_report.xlsx"), overwrite = TRUE)
+
 
 
 

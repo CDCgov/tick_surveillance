@@ -40,9 +40,9 @@ fnRs <- sort(list.files(trimmed_path, pattern="_R2_trimmed.fastq.gz", full.names
 sample.names <- gsub("_R[12]_trimmed.fastq.gz", "", basename(fnFs))
 
 
-# This will place dada-filtered files in dada_filtered/ subdirectory
-filtFs <- file.path(trimmed_path, "dada_filtered", paste0(sample.names, "_F_filt.fastq.gz"))
-filtRs <- file.path(trimmed_path, "dada_filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+# This will place dada-filtered files in dada_filtered/ subdirectory of the pwd
+filtFs <- file.path("dada_filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path("dada_filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 
 
 names(filtFs) <- sample.names

@@ -1,0 +1,1 @@
+rm -rf work results flowchart.pdf* test/results .nextflow* lib/python_venv lib/R/openxlsx lib/R/zip
