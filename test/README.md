@@ -12,7 +12,7 @@ This directory contains small test datasets derived from real samples and [minim
 | Borrelia_burgdoreri_B31_1000_S13_L001_R1_001| A dataset from a tick positive for B. burgdorferi B31, 1000 total reads |
 | Borrelia_burgdoreri_B31_100_S13_L001_R1_001| A dataset from a tick positive for B. burgdorferi B31, 100 total reads |
 | Borrelia_miyamotoi_R1_001.fastq | A dataset from a tick positive for B. miyamotoi |
-| pathogen_pos_S96_L001_R1_001| A dataset from a positive control sample positive for multiple pathogens |
+
 
 These datasets were collected using the [./create_test_fastq script](./create_test_fastq) in this directory.  Note that these test dataset files are named using various typical Illumina naming conventions (e.g. including L001 or not) and correspond to compressed and non-compressed fastq.
 
