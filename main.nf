@@ -16,6 +16,9 @@
 params.help = false
 params.h = false
 
+WorkflowMain.initialise(workflow, params, log)                                  
+
+
 /*
    Pipeline usage output message.
 
@@ -25,135 +28,7 @@ def usageMessage() {
 
   log.info """
 
-  # Tick-borne pathogen surveillance bioinformatics pipeline
-
-  For more information on this pipeline, see:
-
-   https://github.com/stenglein-lab/tick_surveillance/tree/master/documentation
-
-  ## Pipeline usage:
-  
-  The typical command for running the pipeline is as follows:
-
-    nextflow run tick_pipeline.nf 
-  
-  To resume the pipeline (if it stops for some reason or you modify the pipeline scripts): 
-
-    nextflow run tick_pipeline.nf -resume
-
-
-  ## Pipeline inputs and assumptions:
-
-  For a description of this pipeline's assumptions, input formats, see:
-
-    1. Paired end fastq (or compressed fastq) files in the input/fastq folder.  
-       These files should have filenames that end in .fastq or .fastq.gz.
-       These files name's should contain the text R1 and R2, corresponding 
-       to the 2 paired reads. 
-
-    2. A sample metadata file 
-
-
-   To document:
-
-    - Expected type of fastq input 
-    - Format of primer input 
-    - Primer sequences and their orientation.
-    - Format of target reference sequences (species name)...
-    - Internal control reference sequences
-    - Known off target sequences
-    - Known off target sequences
-    - Versioning of references?
-    - NT database info (use RefSeq instead of nt?)
-  
-  Pipeline parameters: 
-
-  All of the following parameters have default values that can be optionally
-  overridden at run time by including the parameter on the command line. For
-  example:
-
-   nextflow run tick_pipeline.nf --input_dir a_different_input_directory
-
-
-    Pipeline input:
-
-    --input_dir                    Input directory. 
-                                   [default: ${params.input_dir}] 
-
-    --fastq_dir                    Input directory for fastq files. 
-                                   [default: ${params.fastq_dir}] 
-
-    --script_dir                   Directory containing auxiliary pipeline scripts.
-                                   [default: ${params.script_dir}] 
-
-    --refseq_dir                   Directory containing target reference sequences.
-                                   [default: ${params.refseq_dir}] 
-
-    --targets                      File containing information about the target
-                                   and internal control sequences in tsv 
-                                   (tab-delimited) format.
-                                   [default: ${params.targets}] 
-
-    --primers                      File containing primers used to amplify 
-                                   surveillance targets in tsv format.
-                                   [default: ${params.primers}] 
-
-    --metadata                     File containing sample metadata
-                                   in Excel format.
-                                   [default: ${params.metadata}] 
-
-
-    Pipeline output:
-
-    --outdir                       Output directory into which to place 
-                                   result files 
-                                   [default: ${params.outdir}] 
-
-    --initial_fastqc_dir           Output directory into which to place 
-                                   initial (pre quality-trimming) fastqc 
-                                   report files
-                                   [default: ${params.initial_fastqc_dir}] 
-
-    --post_trim_fastqc_dir         Output directory into which to place 
-                                   post-trimming fastqc report files
-                                   [default: ${params.post_trim_fastqc_dir}] 
-
-    --trimmed_outdir               Output directory into which to place 
-                                   post-trimming fastqc files
-                                   [default: ${params.trimmed_outdir}] 
-
-
-    Configurable parameters for trimming and assignment:
-
-    --post_trim_min_length         Reads shorter than this after primer trimming
-                                   will be discarded from further analysis.
-                                   [default: ${params.post_trim_min_length}] 
-
-    --max_blast_refseq_evalue      The maximum blastn E-value for observed
-                                   sequences to be considered for possible
-                                   assignment to a reference sequence.  
-                                   Having an blastn E-value below this is 
-                                   necessary but not sufficient to be assigned.
-                                   [default: ${params.max_blast_refseq_evalue}] 
-
-    --max_blast_non_refseq_evalue  The maximum blastn E-value for non-reference
-                                   sequences to be considered for possible
-                                   assignment to a Genbank sequence.  
-                                   Having an blastn E-value below this is 
-                                   necessary but not sufficient to be assigned.
-                                   [default: ${params.max_blast_non_refseq_evalue}] 
-
-    Pipeline help and usage information:
-
-    --help                         Output this usage statement and terminate.
-    --h                            Output this usage statement and terminate. 
-
         """
-
-  // do this extra call to log.info because groovy strips off trailing newlines 
-  // from usage message, which makes for slightly less nice looking output.
-  log.info """
-  """
 }
 
 /* 
@@ -201,6 +76,7 @@ def check_params_and_input () {
   check_blast_parameters()
   
 }
+
 
 /*
   Check that BLAST (of unassigned sequences) parameters are set in a way that makes sense
@@ -336,9 +212,9 @@ process setup_python_venv {
 
   // singularity info for this process
   if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-      container "https://depot.galaxyproject.org/singularity/python:3.9--1" 
+      container "https://depot.galaxyproject.org/singularity/python:3.10.4" 
   } else {
-      container "quay.io/biocontainers/python:3.9--1"
+      container "quay.io/biocontainers/python:3.10.4"
   }
 
   when:
@@ -353,14 +229,12 @@ process setup_python_venv {
 
   if (workflow.containerEngine == 'singularity') {
   """
-    python3 -m venv ${params.python_venv_path}
+    python -m venv ${params.python_venv_path}
     source ${params.python_venv_path}/bin/activate
     # install modules needed for tree-building scripts
-    python -m pip install numpy==1.22.1
-    python -m pip install pandas==1.3.5
-    python -m pip install toytree==2.0.1
-    python -m pip install toyplot==1.0.1
-    python -m pip install openpyxl==3.0.10
+    # see https://github.com/stenglein-lab/tick_surveillance/issues/76
+    # see https://github.com/stenglein-lab/tick_surveillance/issues/77
+    pip install -r ${params.python_requirements}
   """
   } else {
   """
@@ -390,7 +264,8 @@ process setup_R_dependencies {
 
   if (workflow.containerEngine == 'singularity') {
   """
-     Rscript ${params.script_dir}/install_R_packages.R ${params.R_lib_dir}
+     mkdir -p ${params.R_lib_dir}
+     Rscript ${params.script_dir}/install_R_packages.R ${params.R_tar_dir} ${params.R_lib_dir}
   """
   } else {
   """
@@ -776,11 +651,12 @@ trimmed_fastq_ch = Channel.fromPath( params.trimmed_outdir )
 process run_dada_on_trimmed {
   publishDir "${params.dada_outdir}", mode: 'link'
 
-  label 'process_medium'
+  label 'process_high'
+  label 'error_retry'
 
   // singularity info for this process
   if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-      container "https://depot.galaxyproject.org/singularity/bioconductor-dada2%3A1.22.0--r41h399db7b_0"
+      container "https://depot.galaxyproject.org/singularity/bioconductor-dada2:1.22.0--r41h399db7b_0"
   } else {
       container "quay.io/biocontainers/bioconductor-dada2:1.22.0--r41h399db7b_0"
   }
@@ -795,7 +671,6 @@ process run_dada_on_trimmed {
   script:                                                                       
   """                                                                             
   # Run dada2 using trimmed fastq as input and create a tabular output of results
-  # Rscript ${params.script_dir}/run_dada_on_trimmed.R ${params.script_dir} ${params.trimmed_outdir}
   Rscript ${params.script_dir}/run_dada_on_trimmed.R ${params.script_dir} $trimmed_fastq_dir
   """             
 }
@@ -867,6 +742,9 @@ process compare_observed_sequences_to_ref_seqs {
   """             
 }
 
+surveillance_columns_ch =  Channel.fromPath(params.surveillance_columns, type: 'file', checkIfExists: true)
+targets_ch =  Channel.fromPath(params.targets, type: 'file', checkIfExists: true)
+targets_msa_ch =  Channel.fromPath(params.targets, type: 'file', checkIfExists: true)
 
 /*
   This process takes the blast alignment information from the above process
@@ -886,11 +764,15 @@ process assign_observed_sequences_to_ref_seqs {
   path(metadata) from validated_metadata_ch
   tuple path(abundance_table), path(blast_output) from post_compare_ch
   val(R_setup_OK) from post_r_dep_setup_ch
+  path(surveillance_columns_file) from surveillance_columns_ch
+  path(targets_file) from targets_ch
 
   output:
   path("unassigned_sequences.fasta") into post_assign_to_refseq_ch
   path("sequencing_report.xlsx") into report_output_ch
-  path("all_data.csv") into csv_output_ch
+  path("all_data*.csv") into csv_output_ch
+  path("*.txt") into assigned_txt_ch
+  path("*.pdf") into assigned_pdf_ch
 
   // output channels for tree-building process
   path("sequencing_report.xlsx") into report_tree_ch
@@ -899,7 +781,7 @@ process assign_observed_sequences_to_ref_seqs {
   // only use R lib dir for singularity
   def r_lib_dir = workflow.containerEngine == 'singularity' ? "${params.R_lib_dir}" : "NA"
   """                                                                           
-  Rscript ${params.script_dir}/assign_observed_seqs_to_ref_seqs.R ${params.script_dir} $r_lib_dir $abundance_table $blast_output $metadata ${params.targets} ${params.surveillance_columns} ${params.min_reads_for_positive_surveillance_call}
+  Rscript ${params.script_dir}/assign_observed_seqs_to_ref_seqs.R ${params.script_dir} $r_lib_dir $abundance_table $blast_output $metadata ${targets_file} ${surveillance_columns_file} ${params.min_reads_for_positive_surveillance_call}
   """             
 }
 
@@ -915,9 +797,9 @@ process create_fasta_for_trees {
 
   // singularity info for this process
   if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-      container "https://depot.galaxyproject.org/singularity/python:3.9--1" 
+      container "https://depot.galaxyproject.org/singularity/python:3.10.4" 
   } else {
-      container "quay.io/biocontainers/python:3.9--1"
+      container "quay.io/biocontainers/python:3.10.4"
   }
 
   when:
@@ -926,6 +808,7 @@ process create_fasta_for_trees {
   input:
   path(sequencing_report) from report_tree_ch
   val(venv_setup) from post_venv_setup_ch
+  path(targets_file) from targets_msa_ch
 
   output:
   path("*_all.fasta") into fasta_tree_ch
@@ -935,7 +818,7 @@ process create_fasta_for_trees {
   def activate_venv_command = workflow.containerEngine == 'singularity' ? "source ${params.python_venv_path}/bin/activate" : ""
   """
   $activate_venv_command
-  python3 ${params.script_dir}/MPAS_create_fasta.py $sequencing_report $params.targets
+  python3 ${params.script_dir}/MPAS_create_fasta.py $sequencing_report $targets_file
   """
 }
 
@@ -1008,9 +891,9 @@ process view_phylo_tree {
 
   // singularity info for this process
   if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-      container "https://depot.galaxyproject.org/singularity/python:3.9--1" 
+      container "https://depot.galaxyproject.org/singularity/python:3.10.4" 
   } else {
-      container "quay.io/biocontainers/python:3.9--1"
+      container "quay.io/biocontainers/python:3.10.4"
   }
 
   input:
@@ -1038,6 +921,13 @@ blast_db_ch = Channel.empty()
 
 if (params.blast_unassigned_sequences && params.local_nt_database_dir) {
   blast_db_ch = Channel.fromPath( params.local_nt_database_dir )
+} else if (params.blast_unassigned_sequences && params.remote_blast_nt) {
+  // if remote BLASTing, don't need to point to a directory containing a copy
+  // of the local nt BLAST database, but need to provide a non-empty channel
+  // so process check_local_blast_database will run.  
+  // This is based on the pattern described here: 
+  // https://nextflow-io.github.io/patterns/optional-input/
+  blast_db_ch = file( "not_a_real_db_path_but_keeps_channel_from_being_empty" )
 }
 
 
@@ -1072,6 +962,8 @@ process check_local_blast_database {
   params.remote_blast_nt ? 
   """
     echo "Don't need to check local BLAST database when running with -remote option"
+    rm $local_nt_database_dir
+    touch $local_nt_database_dir
   """ : 
   """
     # check for expected .nal file: if not present, output a helpful warning message
@@ -1178,6 +1070,8 @@ process blast_unassigned_sequences {
   publishDir "${params.blast_outdir}", mode: 'link'
 
   label 'process_high'
+  label 'process_high_memory'
+  label 'error_retry'
 
   // singularity info for this process
   if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -1280,7 +1174,9 @@ process prepend_output_filenames {
   input:
   path(output_file) from initial_multiqc_output_ch.mix( post_trim_multiqc_output_ch,
                                                         report_output_ch,
-                                                        csv_output_ch,
+                                                        csv_output_ch.flatten(),
+                                                        assigned_txt_ch.flatten(),
+                                                        assigned_pdf_ch.flatten(),
                                                         unassigned_blast_output_ch)
                                                         
   output:
