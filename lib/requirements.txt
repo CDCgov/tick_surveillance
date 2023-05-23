@@ -14,7 +14,7 @@ pypng==0.20220715.0
 python-dateutil==2.8.2
 pytz==2023.3
 reportlab==3.6.13
-requests==2.30.0
+requests==2.31.0
 six==1.16.0
 toyplot==1.0.1
 toytree==2.0.1
