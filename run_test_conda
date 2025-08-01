@@ -1,0 +1,3 @@
+#!/bin/bash -x
+
+nextflow run main.nf -resume -profile conda,test $*

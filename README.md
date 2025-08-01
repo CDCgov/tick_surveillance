@@ -8,7 +8,7 @@
 
 ## Overview
 
-This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) described by Hojgaard et. al (2020). The MPAS assay was originally designed to detect microbial genera that contain known human pathogens found in _Ixodes_ ticks (_Borrelia_ spp. _Babesia_ spp., _Anaplasma_ spp. _Ehrlichia_ spp.). This pipeline is implemented in Nextflow and performs QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogeneitc tree creation of aligned sequences, and report generation.  
+This bioinformatics pipeline identifies and summarizes amplicon sequences produced by the multiplex PCR amplicon sequencing (MPAS) described by Hojgaard et. al (2020). The MPAS assay was originally designed to detect microbial genera that contain known human pathogens found in _Ixodes_ ticks (_Borrelia_ spp. _Babesia_ spp., _Anaplasma_ spp. _Ehrlichia_ spp.). This pipeline is implemented in Nextflow and performs QC analysis, primer trimming, error correction, alignment to reference sequences, NCBI BLAST of unaligned sequences, phylogenetic tree creation of aligned sequences, and report generation.
 
 To run this pipeline, see [pipeline instructions](Pipeline_instructions.md)
 
@@ -73,5 +73,6 @@ for more information about [contributing to this repository](https://github.com/
 and [code of conduct](https://github.com/CDCgov/template/blob/master/code-of-conduct.md).
 
 ## Pipeline References  
-Hojgaard, A., Osikowicz, L. M., Eisen, L., & Eisen, R. J. (2020). Evaluation of a novel multiplex PCR amplicon sequencing assay for detection of human pathogens in Ixodes ticks. Ticks and tick-borne diseases, 11(6), 101504. https://doi.org/10.1016/j.ttbdis.2020.101504
+Hojgaard, A., Osikowicz, L. M., Eisen, L., & Eisen, R. J. (2020). Evaluation of a novel multiplex PCR amplicon sequencing assay for detection of human pathogens in Ixodes ticks. Ticks and tick-borne diseases, 11(6), 101504. doi:10.1016/j.ttbdis.2020.101504.  [PMID: 32993925](https://pubmed.ncbi.nlm.nih.gov/32993925/).
 
+Osikowicz LM, Hojgaard A, Maes S, Eisen RJ, Stenglein MD. A bioinformatics pipeline for a tick pathogen surveillance multiplex amplicon sequencing assay.  Ticks Tick Borne Dis. 2023 Sep;14(5):102207. doi: 10.1016/j.ttbdis.2023.102207.  Epub 2023 May 27. [PMID: 37247570](https://pubmed.ncbi.nlm.nih.gov/37247570/).

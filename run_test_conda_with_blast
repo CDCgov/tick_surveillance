@@ -1,0 +1,4 @@
+#!/bin/bash -x
+
+nextflow run main.nf -resume -profile conda,test --blast_unassigned_sequences --local_nt_database_dir /home/databases/nt/ $*
+

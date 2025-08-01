@@ -1,0 +1,10 @@
+name: python_conda_environment
+channels:
+  - conda-forge
+  
+dependencies:
+  - conda-forge::toytree=2.0.5
+  - conda-forge::toyplot=1.0.1
+  - conda-forge::pandas=1.4.4
+  - conda-forge::numpy=1.22.*
+  - conda-forge::openpyxl=3.0.10

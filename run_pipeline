@@ -1,3 +1,0 @@
-#!/bin/bash -x
-
-nextflow run main.nf -resume --metadata input/AK_metadata.xlsx -profile singularity,stenglein

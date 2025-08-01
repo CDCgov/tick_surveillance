@@ -159,6 +159,7 @@ class NfcoreSchema {
             println ''
             log.error 'ERROR: Validation of pipeline parameters failed!'
             JSONObject exceptionJSON = e.toJSON()
+            // println exceptionJSON.toString()
             printExceptions(exceptionJSON, params_json, log, enums)
             println ''
             has_error = true
@@ -180,63 +181,6 @@ class NfcoreSchema {
         if (has_error) {
             System.exit(1)
         }
-    }
-
-    //
-    // Beautify parameters for --help
-    //
-    public static String paramsHelp(workflow, params, command, schema_filename='nextflow_schema.json') {
-        Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
-        Integer num_hidden = 0
-        String output  = ''
-        output        += 'Typical pipeline command:\n\n'
-        output        += "  ${colors.cyan}${command}${colors.reset}\n\n"
-        Map params_map = paramsLoad(getSchemaPath(workflow, schema_filename=schema_filename))
-        Integer max_chars  = paramsMaxChars(params_map) + 1
-        Integer desc_indent = max_chars + 14
-        Integer dec_linewidth = 160 - desc_indent
-        for (group in params_map.keySet()) {
-            Integer num_params = 0
-            String group_output = colors.underlined + colors.bold + group + colors.reset + '\n'
-            def group_params = params_map.get(group)  // This gets the parameters of that particular group
-            for (param in group_params.keySet()) {
-                if (group_params.get(param).hidden && !params.show_hidden_params) {
-                    num_hidden += 1
-                    continue;
-                }
-                def type = '[' + group_params.get(param).type + ']'
-                def description = group_params.get(param).description
-                def defaultValue = group_params.get(param).default != null ? " [default: " + group_params.get(param).default.toString() + "]" : ''
-                def description_default = description + colors.dim + defaultValue + colors.reset
-                // Wrap long description texts
-                // Loosely based on https://dzone.com/articles/groovy-plain-text-word-wrap
-                if (description_default.length() > dec_linewidth){
-                    List olines = []
-                    String oline = "" // " " * indent
-                    description_default.split(" ").each() { wrd ->
-                        if ((oline.size() + wrd.size()) <= dec_linewidth) {
-                            oline += wrd + " "
-                        } else {
-                            olines += oline
-                            oline = wrd + " "
-                        }
-                    }
-                    olines += oline
-                    description_default = olines.join("\n" + " " * desc_indent)
-                }
-                group_output += "  --" +  param.padRight(max_chars) + colors.dim + type.padRight(10) + colors.reset + description_default + '\n'
-                num_params += 1
-            }
-            group_output += '\n'
-            if (num_params > 0){
-                output += group_output
-            }
-        }
-        if (num_hidden > 0){
-            output += colors.dim + "!! Hiding $num_hidden params, use --show_hidden_params to show them !!\n" + colors.reset
-        }
-        output += NfcoreTemplate.dashedLine(params.monochrome_logs)
-        return output
     }
 
     //

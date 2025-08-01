@@ -6,7 +6,9 @@
 
 ## Paper describing the pipeline
 
-> Osikowicz LM, Hojgaard A, Maes S, Eisen RJ, Stenglein RJ. A bioinformatics pipeline for a tick pathogen surveillance multiplex amplicon sequencing assay. In review.
+[This paper desribes the pipeline and its validation](https://pubmed.ncbi.nlm.nih.gov/37247570/) 
+
+> Osikowicz LM, Hojgaard A, Maes S, Eisen RJ, Stenglein MD. A bioinformatics pipeline for a tick pathogen surveillance multiplex amplicon sequencing assay.  Ticks Tick Borne Dis. 2023 Sep;14(5):102207. doi: 10.1016/j.ttbdis.2023.102207.  Epub 2023 May 27. PMID: 37247570.
 
 ## [Nextflow](https://pubmed.ncbi.nlm.nih.gov/28398311/)
 

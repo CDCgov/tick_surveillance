@@ -5,56 +5,12 @@
   "description": "A pipeline to analyze amplicon sequencing data for tick-borne pathogens",
   "type": "object",
   "definitions": {
-    "primer_trimming_options": {
-      "title": "Primer trimming options",
+    "input_options": {
+      "title": "Input options",
       "type": "object",
-      "description": "",
-      "default": "",
-      "properties": {
-        "primers": {
-          "type": "string",
-          "default": "/home/mdstengl/2023_1_issues/refseq//primers.tsv"
-        },
-        "post_trim_min_length": {
-          "type": "integer",
-          "default": 100
-        },
-        "amplicon_primers_max_error_fraction": {
-          "type": "number",
-          "default": 0.2
-        },
-        "adapters_min_overlap": {
-          "type": "integer",
-          "default": 10
-        }
-      }
-    },
-    "surveillance_report": {
-      "title": "Surveillance Report",
-      "type": "object",
-      "description": "",
-      "default": "",
-      "properties": {
-        "surveillance_columns": {
-          "type": "string",
-          "default": "/home/mdstengl/2023_1_issues/refseq//surveillance_columns.txt"
-        },
-        "min_reads_for_positive_surveillance_call": {
-          "type": "integer",
-          "default": 50
-        },
-        "max_blast_refseq_evalue": {
-          "type": "number",
-          "default": 1e-10
-        }
-      }
-    },
-    "input_output_options": {
-      "title": "Input/output options",
-      "type": "object",
-      "fa_icon": "fas fa-terminal",
-      "description": "Define where the pipeline should find input data and save output data.",
-      "required": ["fastq_dir"],
+      "fa_icon": "fas fa-angle-left",
+      "description": "Define where the pipeline should find input data.",
+      "required": ["fastq_pattern", "fastq_dir", "metadata", "targets"],
       "properties": {
         "fastq_pattern": {
           "type": "string",
@@ -63,36 +19,109 @@
         },
         "fastq_dir": {
           "type": "string",
-          "default": "input/fastq/",
-          "description": "A directory containing"
-        },
-        "outdir": {
-          "type": "string",
+          "description": "A directory containing fastq files that will be input to the pipeline.",
           "format": "directory-path",
-          "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
-          "fa_icon": "fas fa-folder-open",
-          "default": "./results/"
+          "fa_icon": "fas fa-folder-open"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "The path to an excel spreadsheet containing sample metadata",
+          "fa_icon": "fas fa-file-excel"
+        },
+        "refseq_dir": {
+          "type": "string",
+          "default": "refseq/",
+          "description": "Default location of certain input files",
+          "fa_icon": "fas fa-folder-open"
         },
         "targets": {
           "type": "string",
-          "default": "/refseq//targets.tsv"
-        },
-        "tracedir": {
-          "type": "string",
-          "description": "Directory to keep pipeline Nextflow logs and reports.",
-          "default": "${params.outdir}/pipeline_info",
-          "fa_icon": "fas fa-cogs",
-          "hidden": true
-        },
-        "log_outdir": {
-          "type": "string",
-          "default": "./results/log"
-        },
-        "output_prefix": {
-          "type": "string",
-          "default": "2023_01_12_"
+          "default": "${refseq_dir}/targets.tsv",
+          "description": "A file containing the target sequences and other information about these sequences.",
+          "format": "file-path",
+          "fa_icon": "fas fa-file"
         }
       }
+    },
+    "primer_and_adapter_trimming_options": {
+      "title": "Primer and adapter trimming options",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "primers": {
+          "type": "string",
+          "default": "${refseq_dir}/primers.tsv",
+          "format": "file-path",
+          "description": "A file containing the names and sequences of primers used to amplify targets.",
+          "fa_icon": "fas fa-file"
+        },
+        "post_trim_min_length": {
+          "type": "integer",
+          "default": 100,
+          "description": "After trimming of adapter and primer sequences, amplicons shorter than this length will be discarded.",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "amplicon_primers_max_error_fraction": {
+          "type": "number",
+          "default": 0.2,
+          "description": "This specifies the error tolerance (fraction) used when searching for adapters sequences to trim. This value is passed to the the cutadapt -e parameter.",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "adapters_min_overlap": {
+          "type": "integer",
+          "default": 10,
+          "description": "Used in trimming of Illumina adapter sequences.  Specifies the minimum length of overlap between adapter sequence and read sequence for trimming to occur.  Passed to cutadapt -O parameter.",
+          "minimum": 1,
+          "maximum": 20
+        },
+	 "basecall_quality_limit": {
+                    "type": "string",
+                    "default": "18,22",
+                    "description": "These comma-separated values will be input to the cutadapt -q and -Q options.  These values specify lower basecall quality limits for trimming.  The first number is for trimming bases from the 5' end of reads. The second number is for trimming bases from the 3' end. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#quality-trimming"
+        }
+      },
+      "required": [
+        "primers",
+        "post_trim_min_length",
+        "amplicon_primers_max_error_fraction",
+        "adapters_min_overlap"
+      ]
+    },
+    "calling_of_positives_and_surveillance_report": {
+      "title": "Calling of positives and Surveillance Report",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "surveillance_columns": {
+          "type": "string",
+          "default": "${refseq_dir}/surveillance_columns.txt",
+          "description": "This file specifies what columns will be included in the surveillance report and optional default values.",
+          "format": "file-path",
+          "fa_icon": "fas fa-file"
+        },
+        "min_reads_for_positive_surveillance_call": {
+          "type": "integer",
+          "default": 50,
+          "description": "The number of read pairs assigned to a particular target in order for that target to be called positive.",
+          "minimum": 1
+        },
+        "max_blast_refseq_evalue": {
+          "type": "number",
+          "default": 1e-10,
+          "description": "The maximum BLASTN e-value for an ASV to be initially assigned to a target sequence.  Final assignment will be based on additional criteria.",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "surveillance_columns",
+        "min_reads_for_positive_surveillance_call",
+        "max_blast_refseq_evalue"
+      ]
     },
     "max_job_request_options": {
       "title": "Max job request options",
@@ -106,7 +135,6 @@
           "description": "Maximum number of CPUs that can be requested for any single job.",
           "default": 16,
           "fa_icon": "fas fa-microchip",
-          "hidden": true,
           "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
         },
         "max_memory": {
@@ -115,7 +143,6 @@
           "default": "128.GB",
           "fa_icon": "fas fa-memory",
           "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "hidden": true,
           "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
         },
         "max_time": {
@@ -124,22 +151,7 @@
           "default": "240.h",
           "fa_icon": "far fa-clock",
           "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
-          "hidden": true,
           "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
-        }
-      }
-    },
-    "generic_options": {
-      "title": "Generic options",
-      "type": "object",
-      "fa_icon": "fas fa-file-import",
-      "description": "Less common options for the pipeline, typically set in a config file.",
-      "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
-      "properties": {
-        "help": {
-          "type": "boolean",
-          "description": "Display help text.",
-          "fa_icon": "fas fa-question-circle"
         }
       }
     },
@@ -151,9 +163,68 @@
       "properties": {
         "dada_outdir": {
           "type": "string",
-          "default": "./results/dada2"
+          "default": "${outdir}/dada2",
+          "description": "Directory in which DADA2 output files will be placed.",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "dada2_maxN": {
+          "type": "number",
+          "description": "This value will be passed to the dada2 filterAndTrim function as the maxN parameter. After truncation, sequences with more than maxN Ns will be discarded. See dada2 manual for more information.",
+          "default": 0.0
+        },
+        "dada2_maxEE": {
+          "type": "number",
+          "description": "This value will be passed to the dada2 filterAndTrim function as the maxEE parameter. After truncation, reads with higher than maxEE 'expected errors' will be discarded. See dada2 manual for more information.",
+          "default": 2.0
+        },
+        "dada2_truncQ": {
+          "type": "number",
+          "description": "This value will be passed to the dada2 filterAndTrim function as the truncQ parameter. Truncate reads at the first instance of a quality score less than or equal to truncQ. See dada2 manual for more informatio.n",
+          "default": 2.0
+        },
+        "dada2_trimRight": {
+          "type": "number",
+          "description": "This value will be passed to the dada2 filterAndTrim function as the trimRight parameter. The number of nucleotides to remove from the 3' (right) end of each read. See dada2 manual for more information.",
+          "default": 0.0
+        },
+        "dada2_min_reads": {
+          "type": "number",
+          "description": "This parameter defines the minimum total # of reads in the whole dataset: if the total number of reads in a dataset is lower than this value, dada2 will discard the dataset.",
+          "default": 10.0
+        },
+        "dada2_min_overlap": {
+          "type": "number",
+          "description": "This parameter defines the minimum overlap length of forward and reverse reads required to merge read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html.",
+          "default": 12.0
+        },
+        "dada2_max_mismatch": {
+          "type": "number",
+          "description": "This parameter defines the maximum number of mismatches in the overlapping region when merging read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html.",
+          "default": 0.0
         }
-      }
+      },
+      "required": ["dada_outdir"]
+    },
+    "tree_building": {
+      "title": "Tree-building",
+      "type": "object",
+      "description": "Parameters related to the construction of phylogenetic trees that include observed sequences and pre-defined reference sequences.",
+      "default": "",
+      "properties": {
+        "make_trees": {
+          "type": "boolean",
+          "default": true,
+          "description": "A flag to turn on or off this step."
+        },
+        "tree_outdir": {
+          "type": "string",
+          "default": "${outdir}/trees",
+          "description": "A directory in which tree files will be placed.",
+          "format": "directory-path",
+          "fa_icon": "fas fa-folder-open"
+        }
+      },
+      "required": ["make_trees", "tree_outdir"]
     },
     "blasting_of_unassigned_sequences": {
       "title": "BLASTing of unassigned sequences",
@@ -162,125 +233,280 @@
       "default": "",
       "properties": {
         "blast_unassigned_sequences": {
-          "type": "boolean"
-        },
-        "max_blast_nt_evalue": {
-          "type": "number",
-          "default": 1e-10
-        },
-        "blast_perc_identity": {
-          "type": "number",
-          "default": 70.0
-        },
-        "blast_qcov_hsp_perc": {
-          "type": "number",
-          "default": 70.0
+          "type": "boolean",
+          "description": "A flag to turn off this BLAST step"
         },
         "local_nt_database_dir": {
           "type": "string",
-          "default": "None"
+          "description": "The path to a directory containing a local copy of the NCBI nt database (or whatever database you wish to search).  Note that this is not the path of the database, but is the path of the directory containing the database.",
+          "format": "directory-path",
+          "fa_icon": "fas fa-folder-open"
         },
         "local_nt_database_name": {
           "type": "string",
-          "default": "nt"
+          "default": "nt",
+          "description": "The name of the local BLAST database to be searched in this step.",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "blast_tax_dir": {
+          "type": "string",
+          "description": "The directory containing local copies of the files contained in https://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz.  This is optional and if you don't specify it (recommended), the pipeine will download these automatically.",
+          "format": "directory-path",
+          "fa_icon": "fas fa-folder-open"
         },
         "remote_blast_nt": {
           "type": "boolean",
           "description": "Setting this parameter to true will run this BLAST search using NCBI's remote copy of the nt blast database.  This avoids needing to have a local copy of the nt database installed.  Note that this will be very slow."
         },
-        "blast_tax_dir": {
+        "max_blast_nt_evalue": {
+          "type": "number",
+          "default": 1e-10,
+          "description": "The maximum BLAST e-value for classifying unassigned sequences."
+        },
+        "blast_perc_identity": {
+          "type": "number",
+          "default": 70.0,
+          "description": "The minimum percent identity for BLAST hits to be considered when classifying unassigned sequences.",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "blast_qcov_hsp_perc": {
+          "type": "number",
+          "default": 70.0,
+          "description": "The minimum query coverage percentage for BLAST hits to be considered when classifying unassigned sequences.",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "taxids_of_interest": {
           "type": "string",
-          "default": "None"
+          "default": "None",
+          "description": "This optional list of NCBI taxids can be used to restrict BLASTing of unassigned sequences to these taxids. This value should be of the form of a comma-separated list of taxids, e.g.: 766,1643685,6656,40674,5794"
         }
-      }
+      },
+      "required": [
+        "max_blast_nt_evalue",
+        "blast_perc_identity",
+        "blast_qcov_hsp_perc"
+      ]
     },
-    "new_group_4": {
-      "title": "New Group 4",
+    "software_dependencies": {
+      "title": "Software dependencies",
       "type": "object",
       "description": "",
       "default": "",
       "properties": {
-        "make_trees": {
+        "singularity_pull_docker_container": {
           "type": "boolean",
-          "default": true
+          "description": "If you are using singularity and are persistently observing issues downloading Singularity images directly due to timeout or network issues, then you can use the --singularity_pull_docker_container parameter to pull and convert the Docker image instead.",
+          "hidden": true
         },
-        "tree_outdir": {
+        "R_tar_dir": {
           "type": "string",
-          "default": "./results/trees"
+          "default": "${baseDir}/lib/R/",
+          "description": "Directory containing R package .tar.gz files",
+          "fa_icon": "fas fa-folder-open",
+          "hidden": true
+        },
+        "python_venv_path": {
+          "type": "string",
+          "default": "python_venv/",
+          "description": "The path to a directory where the python venv will be created",
+          "fa_icon": "fas fa-folder-open",
+          "hidden": true
+        },
+        "python_requirements": {
+          "type": "string",
+          "default": "${baseDir}/lib/requirements.txt",
+          "description": "A file listing the python packages that will be installed in the venv",
+          "fa_icon": "fas fa-file",
+          "hidden": true
+        },
+        "script_dir": {
+          "type": "string",
+          "default": "${baseDir}/scripts/",
+          "description": "The path to a directory where scripts for creating python venv exist",
+          "fa_icon": "fas fa-folder-open",
+          "hidden": true
+        }
+      }
+    },
+    "output_options": {
+      "title": "Output options",
+      "type": "object",
+      "description": "Output related options",
+      "default": "",
+      "fa_icon": "fas fa-angle-right",
+      "properties": {
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where results will be saved. You have to use absolute paths to store on Cloud infrastructure.",
+          "fa_icon": "fas fa-folder-open",
+          "default": "results/"
+        },
+        "output_prefix": {
+          "type": "string",
+          "default": "Today's date in YYYY_MM_DD format",
+          "description": "Main pipeline output file names will contain this prefix."
+        },
+        "blast_outdir": {
+          "type": "string",
+          "default": "${outdir}/blast",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Directory in which BLAST output will be placed"
+        },
+        "trimmed_outdir": {
+          "type": "string",
+          "default": "${outdir}/trimmed_fastq",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Directory in which adapter, primer, and quality trimmed fastq will be placed"
+        },
+        "QC_and_summary_stats_dir": {
+          "type": "string",
+          "fa_icon": "fas fa-folder-open",
+          "default": "${outdir}/QC_and_summary_stats",
+          "description": "Directory in which QC report files will be placed and other files summarizing pipeline run and output"
+        },
+        "multiQC_reports": {
+          "type": "string",
+          "default": "${QC_and_summary_stats_dir}/multiqc",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Directory in which multiqc reports will be placed"
+        },
+        "tracedir": {
+          "type": "string",
+          "description": "Directory in which Nextflow logs and reports will be placed.",
+          "default": "${QC_and_summary_stats_dir}/pipeline_info",
+          "fa_icon": "fas fa-folder-open",
+          "format": "directory-path"
+        },
+        "log_outdir": {
+          "type": "string",
+          "default": "${QC_and_summary_stats_dir}/log",
+          "description": "Directory in which pipeline logs and reports will be placed.",
+          "format": "directory-path",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "cutadapt_trim_reports": {
+          "type": "string",
+          "default": "${QC_and_summary_stats_dir}/cutadapt_trim_reports",
+          "description": "Directory in which cutadapt trim reports will be placed."
+        },
+        "publish_dir_mode": {
+          "type": "string",
+          "default": "link",
+          "description": "The default mode for publishing files in output dirs (hard link)"
+        }
+      },
+      "required": ["outdir", "output_prefix", "blast_outdir", "trimmed_outdir"]
+    },
+    "unassigned_sequence_filtering": {
+      "title": "Unassigned sequence filtering",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "filter_unassigned_seq": {
+          "type": "string",
+          "default": "Borrelia,Borreliella,Babesia,Anaplasma,Ehrlichia",
+          "description": "List of taxa of interest"
+        }
+      }
+    },
+    "reporting_options": {
+      "title": "Reporting options",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "monochrome_logs": {
+          "type": "boolean",
+          "hidden": true,
+          "description": "Don't use color in logs"
+        },
+        "multiqc_title": {
+          "type": "string",
+          "hidden": true
+        },
+        "multiqc_config": {
+          "type": "string",
+          "hidden": true
+        },
+        "multiqc_logo": {
+          "type": "string",
+          "hidden": true
+        },
+        "multiqc_methods_description": {
+          "type": "string",
+          "hidden": true
+        }
+      }
+    },
+    "parameter_validation_and_display": {
+      "title": "Parameter validation and display",
+      "type": "object",
+      "description": "Parameters related to parameter validation and display",
+      "default": "",
+      "properties": {
+        "validate_params": {
+          "type": "boolean",
+          "hidden": true,
+          "description": "Validate parameter values using this schema"
+        },
+        "schema_ignore_params": {
+          "type": "string",
+          "hidden": true,
+          "description": "Ignore validation for this list of parameters"
+        },
+        "show_hidden_params": {
+          "type": "boolean",
+          "description": "Show parameters marked as hidden in this schema when running pipeline",
+          "hidden": true
+        },
+        "validationLenientMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate parameters in lenient mode.  See: https://nextflow-io.github.io/nf-validation/parameters/validation/#variable-type-checking"
         }
       }
     }
   },
   "allOf": [
     {
-      "$ref": "#/definitions/primer_trimming_options"
+      "$ref": "#/definitions/input_options"
     },
     {
-      "$ref": "#/definitions/surveillance_report"
+      "$ref": "#/definitions/primer_and_adapter_trimming_options"
     },
     {
-      "$ref": "#/definitions/input_output_options"
+      "$ref": "#/definitions/calling_of_positives_and_surveillance_report"
     },
     {
       "$ref": "#/definitions/max_job_request_options"
     },
     {
-      "$ref": "#/definitions/generic_options"
+      "$ref": "#/definitions/dada2_options"
     },
     {
-      "$ref": "#/definitions/dada2_options"
+      "$ref": "#/definitions/tree_building"
     },
     {
       "$ref": "#/definitions/blasting_of_unassigned_sequences"
     },
     {
-      "$ref": "#/definitions/new_group_4"
+      "$ref": "#/definitions/software_dependencies"
+    },
+    {
+      "$ref": "#/definitions/output_options"
+    },
+    {
+      "$ref": "#/definitions/unassigned_sequence_filtering"
+    },
+    {
+      "$ref": "#/definitions/reporting_options"
+    },
+    {
+      "$ref": "#/definitions/parameter_validation_and_display"
     }
-  ],
-  "properties": {
-    "python_venv_path": {
-      "type": "string",
-      "default": "/home/mdstengl/2023_1_issues/python_venv/",
-      "hidden": true
-    },
-    "script_dir": {
-      "type": "string",
-      "default": "/home/mdstengl/2023_1_issues/scripts"
-    },
-    "R_lib_dir": {
-      "type": "string",
-      "default": "/home/mdstengl/2023_1_issues/lib/R/"
-    },
-    "initial_fastqc_dir": {
-      "type": "string",
-      "default": "./results/initial_fastqc/"
-    },
-    "post_trim_fastqc_dir": {
-      "type": "string",
-      "default": "./results/post_trim_fastqc/"
-    },
-    "trimmed_outdir": {
-      "type": "string",
-      "default": "./results/trimmed_fastq"
-    },
-    "blast_outdir": {
-      "type": "string",
-      "default": "./results/blast"
-    },
-    "refseq_dir": {
-      "type": "string",
-      "default": "/home/mdstengl/2023_1_issues/refseq/"
-    },
-    "refseq_fasta_dir": {
-      "type": "string",
-      "default": "./results/refseq_fasta/"
-    },
-    "singularity_pull_docker_container": {
-      "type": "boolean"
-    },
-    "metadata": {
-      "type": "string",
-      "default": "None"
-    }
-  }
+  ]
 }
