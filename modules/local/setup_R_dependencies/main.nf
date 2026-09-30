@@ -4,7 +4,6 @@
 */
 process SETUP_R_DEPENDENCIES {
   label      'process_low'
-  tag        "${R_lib_dir}"
   publishDir "${params.outdir}"
 
   // singularity info for this process

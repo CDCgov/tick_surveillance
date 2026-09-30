@@ -22,9 +22,10 @@ Define where the pipeline should find input data.
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `primers` | A file containing the names and sequences of primers used to amplify targets. | `string` | ${refseq_dir}/primers.tsv | True |  |
 | `post_trim_min_length` | After trimming of adapter and primer sequences, amplicons shorter than this length will be discarded. | `integer` | 100 | True |  |
+| `always_trim_3p_bases` | Always trim this number of bases from the 3' ends of reads. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#cut-bases | `integer` | 1 | True |  |
 | `amplicon_primers_max_error_fraction` | This specifies the error tolerance (fraction) used when searching for adapters sequences to trim. This value is passed to the the cutadapt -e parameter. | `number` | 0.2 | True |  |
 | `adapters_min_overlap` | Used in trimming of Illumina adapter sequences.  Specifies the minimum length of overlap between adapter sequence and read sequence for trimming to occur.  Passed to cutadapt -O parameter. | `integer` | 10 | True |  |
-| `basecall_quality_limit` | These comma-separated values will be input to the cutadapt -q and -Q options.  These values specify lower basecall quality limits for trimming.  The first number is for trimming bases from the 5' end of reads. The second number is for trimming bases from the 3' end. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#quality-trimming | `string` | 18,22 |  |  |
+| `basecall_quality_limit` | These comma-separated values will be input to the cutadapt -q and -Q options.  These values specify lower basecall quality limits for trimming.  The first number is for trimming bases from the 5' end of reads. The second number is for trimming bases from the 3' end. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#quality-trimming | `string` | 18,18 |  |  |
 
 ## Calling of positives and Surveillance Report
 
@@ -34,6 +35,7 @@ Define where the pipeline should find input data.
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `surveillance_columns` | This file specifies what columns will be included in the surveillance report and optional default values. | `string` | ${refseq_dir}/surveillance_columns.txt | True |  |
 | `min_reads_for_positive_surveillance_call` | The number of read pairs assigned to a particular target in order for that target to be called positive. | `integer` | 50 | True |  |
+| `min_reads_for_positive_control_call` | Specify a simple read # cutoff for calling | `string` | NA |  |  |
 | `max_blast_refseq_evalue` | The maximum BLASTN e-value for an ASV to be initially assigned to a target sequence.  Final assignment will be based on additional criteria. | `number` | 1e-10 | True |  |
 
 ## Max job request options
@@ -53,13 +55,13 @@ Set the top limit for requested resources for any single job.
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `dada_outdir` | Directory in which DADA2 output files will be placed. | `string` | ${outdir}/dada2 | True |  |
-| `dada2_maxN` | This value will be passed to the dada2 filterAndTrim function as the maxN parameter. After truncation, sequences with more than maxN Ns will be discarded. See dada2 manual for more information. | `number` | 0.0 |  |  |
-| `dada2_maxEE` | This value will be passed to the dada2 filterAndTrim function as the maxEE parameter. After truncation, reads with higher than maxEE 'expected errors' will be discarded. See dada2 manual for more information. | `number` | 2.0 |  |  |
-| `dada2_truncQ` | This value will be passed to the dada2 filterAndTrim function as the truncQ parameter. Truncate reads at the first instance of a quality score less than or equal to truncQ. See dada2 manual for more informatio.n | `number` | 2.0 |  |  |
-| `dada2_trimRight` | This value will be passed to the dada2 filterAndTrim function as the trimRight parameter. The number of nucleotides to remove from the 3' (right) end of each read. See dada2 manual for more information. | `number` | 0.0 |  |  |
-| `dada2_min_reads` | This parameter defines the minimum total # of reads in the whole dataset: if the total number of reads in a dataset is lower than this value, dada2 will discard the dataset. | `number` | 10.0 |  |  |
-| `dada2_min_overlap` | This parameter defines the minimum overlap length of forward and reverse reads required to merge read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html. | `number` | 12.0 |  |  |
-| `dada2_max_mismatch` | This parameter defines the maximum number of mismatches in the overlapping region when merging read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html. | `number` | 0.0 |  |  |
+| `dada2_maxN` | This value will be passed to the dada2 filterAndTrim function as the maxN parameter. After truncation, sequences with more than maxN Ns will be discarded. See dada2 manual for more information. | `number` | 0 |  |  |
+| `dada2_maxEE` | This value will be passed to the dada2 filterAndTrim function as the maxEE parameter. After truncation, reads with higher than maxEE 'expected errors' will be discarded. See dada2 manual for more information. | `number` | 2 |  |  |
+| `dada2_truncQ` | This value will be passed to the dada2 filterAndTrim function as the truncQ parameter. Truncate reads at the first instance of a quality score less than or equal to truncQ. See dada2 manual for more informatio.n | `number` | 2 |  |  |
+| `dada2_trimRight` | This value will be passed to the dada2 filterAndTrim function as the trimRight parameter. The number of nucleotides to remove from the 3' (right) end of each read. See dada2 manual for more information. | `number` | 0 |  |  |
+| `dada2_min_reads` | This parameter defines the minimum total # of reads in the whole dataset: if the total number of reads in a dataset is lower than this value, dada2 will discard the dataset. | `number` | 10 |  |  |
+| `dada2_min_overlap` | This parameter defines the minimum overlap length of forward and reverse reads required to merge read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html. | `number` | 12 |  |  |
+| `dada2_max_mismatch` | This parameter defines the maximum number of mismatches in the overlapping region when merging read pairs by dada2::mergePairs.  See: https://rdrr.io/bioc/dada2/man/mergePairs.html. | `number` | 0 |  |  |
 
 ## Tree-building
 
@@ -82,8 +84,8 @@ Parameters associated with BLASTing of unassigned sequences against the NCBI nt 
 | `blast_tax_dir` | The directory containing local copies of the files contained in https://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz.  This is optional and if you don't specify it (recommended), the pipeine will download these automatically. | `string` |  |  |  |
 | `remote_blast_nt` | Setting this parameter to true will run this BLAST search using NCBI's remote copy of the nt blast database.  This avoids needing to have a local copy of the nt database installed.  Note that this will be very slow. | `boolean` |  |  |  |
 | `max_blast_nt_evalue` | The maximum BLAST e-value for classifying unassigned sequences. | `number` | 1e-10 | True |  |
-| `blast_perc_identity` | The minimum percent identity for BLAST hits to be considered when classifying unassigned sequences. | `number` | 70.0 | True |  |
-| `blast_qcov_hsp_perc` | The minimum query coverage percentage for BLAST hits to be considered when classifying unassigned sequences. | `number` | 70.0 | True |  |
+| `blast_perc_identity` | The minimum percent identity for BLAST hits to be considered when classifying unassigned sequences. | `number` | 70 | True |  |
+| `blast_qcov_hsp_perc` | The minimum query coverage percentage for BLAST hits to be considered when classifying unassigned sequences. | `number` | 70 | True |  |
 | `taxids_of_interest` | This optional list of NCBI taxids can be used to restrict BLASTing of unassigned sequences to these taxids. This value should be of the form of a comma-separated list of taxids, e.g.: 766,1643685,6656,40674,5794 | `string` | None |  |  |
 
 ## Software dependencies
@@ -123,8 +125,18 @@ Output related options
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `filter_unassigned_seq` | List of taxa of interest | `string` | Borrelia,Borreliella,Babesia,Anaplasma,Ehrlichia |  |  |
 
-## Reporting options
+## Make targets options
 
+Trigger the make_targets functionality
+
+| Parameter | Description | Type | Default | Required | Hidden |
+|-----------|-----------|-----------|-----------|-----------|-----------|
+| `make_targets` | Trigger the make_targets functionality | `string` |  |  |  |
+| `primer_mix` | Selects which group of primers and reference sequences to use from the refseq_all.xlsx file to create the targets.tsv and primers.tsv. | `string` |  |  |  |
+| `all_refseq` | The path to an excell spreadsheet containing reference sequences and primer mix info. Required when `make_targets` True | `string` | ${params.refseq_dir}/refseq_all.xlsx | | | |  
+| `study_type` | Selects either the 'SURVEIILANCE' or 'RESEARCH' analysis options listed in refseq_all.xlsx | `string` |  |  |  |
+
+## Reporting options
 
 
 | Parameter | Description | Type | Default | Required | Hidden |

@@ -133,11 +133,14 @@ dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 
 # merge paired reads
+# trimOverhang trims "overhangs", when reads extend past the end of each other.  
+# this accounts for the situation when the reads are longer than the amplicon insert size
 mergers <- mergePairs(dadaFs, filtFs, 
 		      dadaRs, filtRs, 
-                      minOverlap  = input_min_overlap,
-                      maxMismatch = input_max_mismatch,
-		      verbose     = TRUE)
+                      minOverlap   = input_min_overlap,
+                      maxMismatch  = input_max_mismatch,
+		      trimOverhang = TRUE,
+		      verbose      = TRUE)
 
 # create a table of dada2 results
 seqtab <- makeSequenceTable(mergers)

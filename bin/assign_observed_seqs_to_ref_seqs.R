@@ -27,6 +27,7 @@ if (!interactive()) {
   targets_tsv_file            = args[5]
   surveillance_columns_file   = args[6]
   input_min_non_control_reads = args[7]
+  input_min_control_reads     = args[8]
   output_dir                  = "./"
 } else {
   # else if running via RStudio
@@ -37,6 +38,7 @@ if (!interactive()) {
   targets_tsv_file            = "../refseq/targets.tsv"
   surveillance_columns_file   = "../refseq/surveillance_columns.txt"
   input_min_non_control_reads = 50
+  input_min_control_reads     = "null"
   output_dir                  = "../results/"
 }
 
@@ -148,6 +150,11 @@ blast_df <- left_join(blast_df, sequences, by=c("query" = "sequence_number"))
 #   - alignment_length == query length
 #   - gaps = # of bases in insertion
 #
+# 4) If observed sequences is longer (extend beyond) the reference sequence,
+#    for instance because of untrimmed primers
+#   - alignment_length < query length
+#    then this will cause percent_query_aligned to be < 100
+#
 # Note that any indels relative to reference sequence have the effect of decreasing 
 # the % identity of the alignment in blast output in addition to influencing 
 # gaps and alignment length values as described above.  So, any gaps in the alignment
@@ -219,10 +226,20 @@ surveillance_columns <- read.delim(surveillance_columns_file, sep="\t", header=T
 
 # --------------------------------------------------------------------------------------
 # This input parameter specifies how many reads will be required to make a positive call 
-# in the surveillance table
+# in the surveillance table for non-control targets (for example: pathogen reads)
 # --------------------------------------------------------------------------------------
 # make sure it's not a character type but a numeric type
 input_min_non_control_reads <- as.numeric(input_min_non_control_reads)
+
+# --------------------------------------------------------------------------------------
+# This input parameter specifies how many reads will be required to make a positive call 
+# in the surveillance table for control reads (for example: tick actin reads)
+# --------------------------------------------------------------------------------------
+if (input_min_control_reads == "NA" || input_min_control_reads == "null" || input_min_control_reads == "") { 
+  input_min_control_reads <- NA
+} else {
+  input_min_control_reads <- as.numeric(input_min_control_reads)
+}
 
 # --------------------------------------------------------------------------
 # logic for saying that one of the observed sequences is close enough 
@@ -246,7 +263,6 @@ assign_blast_hits_to_refseqs <- function() {
                                   TRUE, 
                                   FALSE))
 }  
-
 
 # Call function to see if sequences are close enough to a target to be assigned to that target
 assign_blast_hits_to_refseqs()
@@ -376,10 +392,23 @@ internal_control_batch_averages <- dataset_df %>%
 # Minimum number of internal control mapping reads
 # -------------------------------------------------
 
-# for internal control targets, this is the mean of the batch log10 read # - 3 standard deviations
-internal_control_batch_averages <- internal_control_batch_averages %>%
-  mutate(minimum_internal_control_log_reads =
-           mean_batch_internal_ctrl_reads - (3 * sd_batch_internal_ctrl_reads))
+# there are 2 possible ways to call internal control targets positive:
+# 1) if input_min_control_reads is specified (is not NA), then use a simple
+# cutoff of the # of reads required to call a positive
+# 2) alternatively, if input_min_control_reads is NA, then use the mean - 3 standard deviations
+# as the cutoff
+  
+# determine cutoff for the minimum number of reads to call the internal controls positive
+# default scenario: use the mean and sd to calculate cutoff
+if (is.na(input_min_control_reads)) {
+  internal_control_batch_averages <- internal_control_batch_averages %>%
+    mutate(minimum_internal_control_log_reads = mean_batch_internal_ctrl_reads - (3 * sd_batch_internal_ctrl_reads))
+} else {
+  # use a simple cutoff
+  # log10 transform to match cutoff comparison below
+  internal_control_batch_averages <- internal_control_batch_averages %>%
+    mutate(minimum_internal_control_log_reads = log10(input_min_control_reads))
+}
 
 # join in info about internal control cutoffs
 dataset_df <- left_join(dataset_df, internal_control_batch_averages, by="batch")

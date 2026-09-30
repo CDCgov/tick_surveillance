@@ -1,0 +1,17 @@
+column_name	default_text
+CSID
+Index
+Acceptable_DNA	Negative
+Borrelia_sp	Negative
+Borrelia_sp_name
+Anaplasma_sp	Negative
+Anaplasma_sp_name	
+Babesia_sp	Negative
+Babesia_sp_name
+Ehrlichia_sp	Negative
+Ehrlichia_sp_name
+Theileria_sp	Negative
+Theileria_sp_name
+Notes
+Molecular_Tick_ID
+Morphological_Ectoparasite_Genus_Species

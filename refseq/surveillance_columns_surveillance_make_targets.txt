@@ -1,0 +1,26 @@
+column_name	default_text
+CSID
+Index
+Acceptable_DNA	Negative
+Borrelia_burgdorferi_sensu_stricto	Negative
+Borrelia_mayonii	Negative
+Borrelia_miyamotoi	Negative
+Anaplasma_phagocytophilum_human_active_strain	Negative
+Anaplasma_phagocytophilum_non-human_active_strain	Negative
+Babesia_microti	Negative
+Ehrlichia_muris_eauclairensis	Negative
+Borrelia_sp	Negative
+Borrelia_sp_other
+Anaplasma_sp	Negative
+Anaplasma_sp_other	
+Babesia_sp	Negative
+Babesia_sp_other
+Ehrlichia_sp	Negative
+Ehrlichia_sp_other
+Theileria_sp	Negative
+Theileria_sp_name
+Notes
+Molecular_Tick_ID
+Morphological_Ectoparasite_Genus_Species
+POS_CTL	Negative
+POS_CTL_name

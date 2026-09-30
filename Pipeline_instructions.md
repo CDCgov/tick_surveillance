@@ -26,6 +26,7 @@ This pipeline is [described in this paper](https://pubmed.ncbi.nlm.nih.gov/37247
     - [Mapping of reference sequence to surveillance targets ](#Mapping-of-reference-sequence-to-surveillance-targets)
     - [Calling positive hits](#Calling-positive-hits)
 - [Primers and primer trimming](#Primers-and-primer-trimming)
+- [--make_targets](#--make_targets)
 - [QC reports](#QC-reports)
 - [BLASTing of unassigned sequences](#BLASTing-of-unassigned-sequences)
 - [Dependencies](#Dependencies)
@@ -210,8 +211,9 @@ To add a new sequence to the targets.tsv file, you will need to edit this file. 
 The default location of the targets.tsv file can be overriden by specifying the --targets option on the nextflow command line.  For instance:
 
 ```
-nextflow run main.nf -profile singularity --targets /path/to/targets.tsv
-```
+nextflow run main.nf -profile singularity --targets /path/to/targets.tsv  
+```  
+
 
 ### Assignment of observed sequences to reference sequences
 
@@ -248,11 +250,22 @@ A key output of the pipeline is to define whether specific samples are positive 
 
 **Positive control targets**: these targets are defined as `internal_control` in [targets.tsv](./refseq/targets.tsv).  These are targets that are expected to amplify from any tick DNA sample (e.g tick actin, or a "tick ID" target).   These targets are called positive according to the following procedure:
 
+1) **Default behavior, read number distribution based** (if parameter min_reads_for_positive_control_call *is not* specified):
 - The mean number of reads for the target is calculated for each batch of datasets.  Samples can be binned into batches in [the metadata file](#Metadata-file) using the batch column.  If batches are not defined in the metadata, then all datasets will be binnned into a single batch.
 - For each sample, if the number of reads assigned to this target is ≥ the mean value less 3 standard deviations, the sample is called positive for this target
 - For all calculations, the log10(# reads) are used, because read counts for internal control targets exhibit log-normal distributions.
 
+2) **Optional behavior, simple cutoff** (if parameter min_reads_for_positive_control_call *is* specified):
+- The number of reads for the target must exceed the value specied by min_reads_for_positive_control_call
+
+To use an optional simple cutoff for internal control targets, run the pipeline with a command-line like:
+```
+# require a simple cutoff of 300 reads to call a control target positive
+nextflow run stenglein-lab/tick_surveillance ... --min_reads_for_positive_control_call 300
+```
+
 **All other targets**: These are any surveillance target that is not defined as an internal control in [targets.tsv](./refseq/targets.tsv).  If the summed ASV counts for a surveillance target are ≥50, the target will be called positive.  The value of 50 is a default cutoff that can be overridden using the `--min_reads_for_positive_surveillance_call` parameter on the nextflow command line.
+
 
 
 ## Primers and primer trimming
@@ -272,7 +285,61 @@ nextflow run stenglein-lab/tick_surveillance -profile singularity --primers /pat
 
 If primer sequences are not entered in the correct orientation, trimming will not work and targets amplified by these sequences will not be detected by the pipeline.  The solution in this case will most likely just be to swap the F/R orientation of the primers in this file.  
 
-**Correct primer orientation:**  The forward primer (primer_f) should appear at the beginning of Illumina read 1 and be in the same orientation as R1.  The reverse primer (primer_r) should appear at the beginning of read 2 and be in the same orientation as read 2.  In other words, relative to the PCR product as a whole, the primers should point towards each other.
+**Correct primer orientation:**  The forward primer (primer_f) should appear at the beginning of Illumina read 1 and be in the same orientation as R1.  The reverse primer (primer_r) should appear at the beginning of read 2 and be in the same orientation as read 2.  In other words, relative to the PCR product as a whole, the primers should point towards each other.  
+
+## --make_targets
+
+When this paramter is uesd (--make_targets true), the targets.tsv and primers.tsv files are automatically created from refseq_all.xlsx. This is an alternative way to specifying the targets.tsv and primers.tsv files.
+
+When true, the user must also provide --study_type and --primer_mix parameters on the command line. The parameters --primers and --targets are not used when --make_targets is used. See below for --study_type and --primer_mix details. 
+
+The name and path of the refseq_all.xlxs file can be overridden using the --all_refseq parameter on the command line.  
+
+The refseq_all.xlxs file must contain two tabs: one named 'targets' and one named 'primers'. These tabs must contain the required columns listed in the table below.  
+
+The 'targets' tab consists of the reference sequences and parameters for sequencing alignment. The 'SURVEILLANCE' or 'RESEARCH' reporting _columns, internal_control, and alignment paremeters (min_percent_identity, _min_percent_aligned, max_percent_gaps) provide the user a way to save two analysis options for reference sequences in refseq_all.xlxs.  
+
+The --study_type parameter selects either the 'SURVEIILANCE' or 'RESEARCH' analysis options listed in refseq_all.xlsx. Only one study_type can be used per pipeline run. Command line options for --study_type: 'surveillance' or 'research'.  
+
+The primer tab consists of primers that will be used to make the primers.tsv file. The primer_mix column allows the user to list mutliple MPAS assay mixes in one file. Reference sequences from the targets tab that list a primer_name that corresponds to a primer_mix in the primers tab will be used to create the targets.tsv file. 
+
+The --primer_mix paramemter selects which group of primers and reference sequences to use from the refseq_all.xlsx file to create the targets.tsv and primers.tsv. The primer mix entered on the command line must correspond to a primer mix listed in the primer_mix column in the primers tab. Multiple primer mixes can be used by listing all mixes on the command line:  
+
+```
+--primer_mix iPM-01,iPM-05
+```  
+In the example above, all primers for iPM-01 and iPM-05 listed in the primer tab of the refseq_all.xlsx file will be used to create the primers.tsv file. The reference sequences with the corresponding primer_name to the primer_mix will be used to make the targets.tsv file.   
+
+An example of analysing a dataset with the --make_targets paraemeter using the surveillance study type and the iPM-01 primer mix:
+
+```
+nextflow run main.nf -profile singularity --make_targets true --study_type surveillance --primer_mix iPM-01
+```
+
+Required columns in the all_refseq.xlsx file:  
+
+| Column             | Tab | Description |
+| :-----------       | :--: | --------- |
+| ref_sequence_name      | targets | The reference sequence name |
+| species                | targets | The species for this reference sequence.  This value will be reported but is not used to map reference sequences to surveillance targets (reporting_columns is used for that). |  
+| primer_name            | targets | The name of the primers expected to amplify this target (e.g., FlaB).  Used to select reference sequences for the primer_mix used in analysis. Entires should match the primer_name in the primers tab.|
+| SURVEILLANCE_reporting_columns      | targets | A semicolon-separated list of surveillance targets.  Reads that are assigned to this reference sequence will be assigned to these targets, as described [here](#Mapping-of-reference-sequence-to-surveillance-targets). This option is used when '--study_type surveillance'.|
+| SURVEILLANCE_min_percent_identity   | targets | The minimum percent identity of the alignment between an observed sequence and this reference sequence to be assigned as a positive hit. This option is used when '--study_type surveillance'. |
+| SURVEILLANCE_min_percent_aligned    | targets | The minimum percent of the observed sequence that must align to this reference sequence to be assigned as a positive hit. This option is used when '--study_type surveillance'. |
+| SURVEILLANCE_max_percent_gaps       | targets | The maximum percent gap characters in alignments of observed sequences and this reference sequence to be assigned as a positive hit. This option is used when '--study_type surveillance'.|
+| SURVEILLANCE_internal_control       | targets | True if this corresponds to an internal control target, such as tick actin or a "tick ID" amplicon. This option is used when '--study_type surveillance'.|
+| RESEARCH_reporting_columns      | targets | A semicolon-separated list of surveillance targets.  Reads that are assigned to this reference sequence will be assigned to these targets, as described [here](#Mapping-of-reference-sequence-to-surveillance-targets). This option is used when '--study_type research'. |
+| RESEARCH_min_percent_identity   | targets | The minimum percent identity of the alignment between an observed sequence and this reference sequence to be assigned as a positive hit.This option is used when '--study_type research'. |
+| RESEARCH_min_percent_aligned    | targets | The minimum percent of the observed sequence that must align to this reference sequence to be assigned as a positive hit.This option is used when '--study_type research'. |
+| RESEARCH_max_percent_gaps       | targets | The maximum percent gap characters in alignments of observed sequences and this reference sequence to be assigned as a positive hit. This option is used when '--study_type research'.|
+| RESEARCH_internal_control       | targets | True if this corresponds to an internal control target, such as tick actin or a "tick ID" amplicon. This option is used when '--study_type research'.|
+| sequence               | targets | The expected reference sequence, including primers |
+| primer_mix | primers | The name of the primer mix used in the MPAS dataset being analyzed. The primer_mix is specified using the '--primer_mix' parameter on the command line. |
+| primer_name | primers | The primer name used in the specified primer mix. The primer_name is used to select the appropriate reference seqeunces from the targets tab that will be used to create the targets.tsv file.  |
+| primer_f_name | primers | The forward primer name |
+| primer_f_sequence | primers | The forward primer sequence |
+| primer_r_name | primers | The reverse primer name |
+| primer_r_seq | primers | The reverse primer sequence |
 
 ## QC reports
 

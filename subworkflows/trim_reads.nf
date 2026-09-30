@@ -92,6 +92,8 @@ process TRIM_PRIMERS_AND_LOW_Q {
   #
   # --trim-n removes N bases from the ends of reads
   #
+  # --cut: "unconditionally remove bases from the beginning or end of each read. If the given length is positive, the bases are removed from the beginning of each read. If it is negative, the bases are removed from the end."
+  #
   # -q and -Q trim low quality bases from the ends of read1 and read2
   #
   cutadapt \
@@ -103,6 +105,7 @@ process TRIM_PRIMERS_AND_LOW_Q {
     -Q ${params.basecall_quality_limit} \
     -e ${params.amplicon_primers_max_error_fraction} \
     --minimum-length ${params.post_trim_min_length} \
+    --cut -${params.always_trim_3p_bases} \
     $f1 \
     $f2 \
     -o ${meta.id}.primer_trimmed.R1.fastq.gz \

@@ -63,6 +63,11 @@
           "minimum": 1,
           "maximum": 10000
         },
+	"always_trim_3p_bases": {
+	  "type": "integer",
+	  "default": 1,
+	  "description": "Always trim this number of bases from the 3' ends of reads. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#cut-bases"
+	},
         "amplicon_primers_max_error_fraction": {
           "type": "number",
           "default": 0.2,
@@ -79,7 +84,7 @@
         },
 	 "basecall_quality_limit": {
                     "type": "string",
-                    "default": "18,22",
+                    "default": "18,18",
                     "description": "These comma-separated values will be input to the cutadapt -q and -Q options.  These values specify lower basecall quality limits for trimming.  The first number is for trimming bases from the 5' end of reads. The second number is for trimming bases from the 3' end. For more information, see: https://cutadapt.readthedocs.io/en/stable/guide.html#quality-trimming"
         }
       },
@@ -109,6 +114,10 @@
           "description": "The number of read pairs assigned to a particular target in order for that target to be called positive.",
           "minimum": 1
         },
+	"min_reads_for_positive_control_call": {
+          "type": "integer",
+          "description": "Specify a simple read number cutoff for calling a control target positive (e.g. tick actin) instead of using a distribution-based cutoff, which is the default method."
+        },
         "max_blast_refseq_evalue": {
           "type": "number",
           "default": 1e-10,
@@ -122,6 +131,25 @@
         "min_reads_for_positive_surveillance_call",
         "max_blast_refseq_evalue"
       ]
+    },
+    "make_targets_options": {
+      "title": "Make targets options",
+      "type": "object",
+      "description": "",
+      "properties": {
+          "make_targets": {
+              "type": "boolean",
+              "description": "Trigger the make_targets functionality"
+          },
+          "primer_mix": {
+              "type": "string",
+              "description": "Selects which group of primers and reference sequences to use from the refseq_all.xlsx file to create the targets.tsv and primers.tsv."
+          },
+          "study_type": {
+              "type": "string",
+              "description": "Selects either the 'SURVEIILANCE' or 'RESEARCH' analysis options listed in refseq_all.xlsx"
+          }
+      }
     },
     "max_job_request_options": {
       "title": "Max job request options",
@@ -482,6 +510,9 @@
       "$ref": "#/definitions/calling_of_positives_and_surveillance_report"
     },
     {
+      "$ref": "#/definitions/make_targets_options"
+    },
+    {
       "$ref": "#/definitions/max_job_request_options"
     },
     {
@@ -510,3 +541,4 @@
     }
   ]
 }
+

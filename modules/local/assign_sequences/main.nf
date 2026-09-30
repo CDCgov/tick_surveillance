@@ -90,7 +90,7 @@ process ASSIGN_OBSERVED_SEQS {
   // only use R lib dir for singularity
   def r_lib_dir = workflow.containerEngine == 'singularity' ? "${R_lib_dir_input}" : "NA"
   """
-  assign_observed_seqs_to_ref_seqs.R $r_lib_dir $abundance_table $blast_output $metadata ${targets_file} ${surveillance_columns_file} ${params.min_reads_for_positive_surveillance_call} 
+  assign_observed_seqs_to_ref_seqs.R $r_lib_dir $abundance_table $blast_output $metadata ${targets_file} ${surveillance_columns_file} ${params.min_reads_for_positive_surveillance_call} ${params.min_reads_for_positive_control_call} 
   """
 }
 
